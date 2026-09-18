@@ -186,12 +186,69 @@ def dashboard():
     ''', (uid,)).fetchone()
     earnings = earnings_row['total']
 
+    # Breakdown of Network revenue vs Custom ad spend
+    breakdown_row = conn.execute('''
+        SELECT 
+            COALESCE(SUM(CASE WHEN al.amount > 0 THEN al.amount ELSE 0 END), 0) AS network_earnings,
+            COALESCE(SUM(CASE WHEN al.amount < 0 THEN ABS(al.amount) ELSE 0 END), 0) AS custom_spend
+        FROM ad_ledger al
+        JOIN links l ON l.id = al.link_id
+        WHERE l.owner_id = ?
+    ''', (uid,)).fetchone()
+    network_earnings = breakdown_row['network_earnings']
+    custom_spend = breakdown_row['custom_spend']
+
     total_clicks = sum(link['click_count'] for link in links)
 
     return render_template('dashboard.html',
                            links=links,
                            earnings=earnings,
+                           network_earnings=network_earnings,
+                           custom_spend=custom_spend,
                            total_clicks=total_clicks)
+
+
+@app.route('/dashboard/live-stats')
+@login_required
+def dashboard_live_stats():
+    conn = db.get_db()
+    uid = session['user_id']
+
+    links = conn.execute('''
+        SELECT links.id, links.code, COUNT(clicks.id) AS click_count
+        FROM links
+        LEFT JOIN clicks ON clicks.link_id = links.id
+        WHERE links.owner_id = ?
+        GROUP BY links.id
+    ''', (uid,)).fetchall()
+
+    earnings_row = conn.execute('''
+        SELECT COALESCE(SUM(al.amount), 0) AS total
+        FROM ad_ledger al
+        JOIN links l ON l.id = al.link_id
+        WHERE l.owner_id = ?
+    ''', (uid,)).fetchone()
+    earnings = earnings_row['total']
+
+    breakdown_row = conn.execute('''
+        SELECT 
+            COALESCE(SUM(CASE WHEN al.amount > 0 THEN al.amount ELSE 0 END), 0) AS network_earnings,
+            COALESCE(SUM(CASE WHEN al.amount < 0 THEN ABS(al.amount) ELSE 0 END), 0) AS custom_spend
+        FROM ad_ledger al
+        JOIN links l ON l.id = al.link_id
+        WHERE l.owner_id = ?
+    ''', (uid,)).fetchone()
+
+    total_clicks = sum(row['click_count'] for row in links)
+
+    return jsonify({
+        'earnings': round(earnings, 2),
+        'earnings_formatted': f"{earnings:.2f}",
+        'network_earnings': round(breakdown_row['network_earnings'], 2),
+        'custom_spend': round(breakdown_row['custom_spend'], 2),
+        'total_clicks': total_clicks,
+        'links': [{'code': row['code'], 'clicks': row['click_count']} for row in links]
+    })
 
 
 @app.route('/dashboard/delete/<code>', methods=['POST'])
@@ -228,6 +285,56 @@ def dashboard_toggle_ads(code):
     conn.execute('UPDATE links SET ads_enabled = ? WHERE code = ?', (new_val, code))
     conn.commit()
     return jsonify({'message': 'Updated', 'ads_enabled': bool(new_val)}), 200
+
+
+@app.route('/dashboard/configure-ad/<code>', methods=['POST'])
+@login_required
+def dashboard_configure_ad(code):
+    """Configure ad mode (network vs custom) and ad creative details for a link."""
+    conn = db.get_db()
+    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    if not link:
+        return jsonify({'error': 'Not found'}), 404
+
+    if link['owner_id'] != session['user_id']:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    data = request.get_json() if request.is_json else request.form
+    ad_type = data.get('ad_type', 'network')
+    if ad_type not in ('network', 'custom'):
+        ad_type = 'network'
+
+    custom_ad_url = (data.get('custom_ad_url') or '').strip()
+    custom_ad_title = (data.get('custom_ad_title') or '').strip()
+    custom_ad_desc = (data.get('custom_ad_desc') or '').strip()
+    custom_ad_media_type = (data.get('custom_ad_media_type') or 'link').strip()
+    if custom_ad_media_type not in ('link', 'video', 'webpage'):
+        custom_ad_media_type = 'link'
+
+    if ad_type == 'custom' and not custom_ad_url:
+        return jsonify({'error': 'Destination URL is required for custom ads.'}), 400
+
+    conn.execute('''
+        UPDATE links SET
+            ad_type = ?,
+            custom_ad_url = ?,
+            custom_ad_title = ?,
+            custom_ad_desc = ?,
+            custom_ad_media_type = ?,
+            ads_enabled = 1
+        WHERE code = ?
+    ''', (ad_type, custom_ad_url, custom_ad_title, custom_ad_desc, custom_ad_media_type, code))
+    conn.commit()
+
+    return jsonify({
+        'message': 'Ad configured successfully',
+        'ad_type': ad_type,
+        'custom_ad_url': custom_ad_url,
+        'custom_ad_title': custom_ad_title,
+        'custom_ad_desc': custom_ad_desc,
+        'custom_ad_media_type': custom_ad_media_type,
+        'ads_enabled': True
+    }), 200
 
 
 # ── Shorten Routes ──────────────────────────────────────────
@@ -292,11 +399,21 @@ def _shorten_logic(owner_id):
     heuristic_flags = core.heuristic_check(url)
     initial_safety = 'pending'
 
+    ad_type = data.get('ad_type', 'network')
+    if ad_type not in ('network', 'custom'):
+        ad_type = 'network'
+    custom_ad_url = (data.get('custom_ad_url') or '').strip()
+    custom_ad_title = (data.get('custom_ad_title') or '').strip()
+    custom_ad_desc = (data.get('custom_ad_desc') or '').strip()
+    custom_ad_media_type = (data.get('custom_ad_media_type') or 'link').strip()
+    if custom_ad_media_type not in ('link', 'video', 'webpage'):
+        custom_ad_media_type = 'link'
+
     cur = conn.cursor()
     cur.execute('''
-        INSERT INTO links (original_url, owner_id, ads_enabled, safety_status)
-        VALUES (?, ?, ?, ?)
-    ''', (url, owner_id, ads_enabled, initial_safety))
+        INSERT INTO links (original_url, owner_id, ads_enabled, safety_status, ad_type, custom_ad_url, custom_ad_title, custom_ad_desc, custom_ad_media_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (url, owner_id, ads_enabled, initial_safety, ad_type, custom_ad_url, custom_ad_title, custom_ad_desc, custom_ad_media_type))
     link_id = cur.lastrowid
 
     if not code:
@@ -363,13 +480,22 @@ def redirect_link(code):
 
     # Flow 2 — Ad interstitial
     if link['ads_enabled']:
+        # Record monetization with each click:
+        # Custom ad: User pays $0.01 (-0.01) to run their own promotion
+        # Network ad: User earns $0.02 (+0.02) from Google Ads network
+        amount = -0.01 if link['ad_type'] == 'custom' else 0.02
+        conn.execute(
+            'INSERT INTO ad_ledger (link_id, amount) VALUES (?, ?)',
+            (link['id'], amount))
+        conn.commit()
+
         nonce = secrets.token_urlsafe(16)
         conn.execute(
             'INSERT INTO ad_nonces (nonce, link_id) VALUES (?, ?)',
             (nonce, link['id']))
         conn.commit()
         token = serializer.dumps({'link_id': link['id'], 'nonce': nonce})
-        return render_template('ad_interstitial.html', token=token)
+        return render_template('ad_interstitial.html', token=token, link=link)
 
     # Flow 3 — Direct redirect
     return redirect(link['original_url'])
@@ -378,7 +504,7 @@ def redirect_link(code):
 @app.route('/continue/<token>')
 def continue_ad(token):
     try:
-        data = serializer.loads(token, max_age=30)
+        data = serializer.loads(token, max_age=120)
     except SignatureExpired:
         return render_template('expired.html'), 400
     except BadSignature:
@@ -396,12 +522,7 @@ def continue_ad(token):
     if cur.rowcount == 0:
         return render_template('expired.html'), 400
 
-    conn.execute(
-        'INSERT INTO ad_ledger (link_id, amount) VALUES (?, ?)',
-        (link_id, 0.05))
-    conn.commit()
-
-    link = conn.execute('SELECT original_url FROM links WHERE id = ?',
+    link = conn.execute('SELECT * FROM links WHERE id = ?',
                         (link_id,)).fetchone()
     if not link:
         abort(404)

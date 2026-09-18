@@ -18,6 +18,11 @@ CREATE TABLE IF NOT EXISTS links (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP,
     ads_enabled BOOLEAN DEFAULT 0,
+    ad_type TEXT DEFAULT 'network', -- 'network', 'custom'
+    custom_ad_url TEXT DEFAULT '',
+    custom_ad_title TEXT DEFAULT '',
+    custom_ad_desc TEXT DEFAULT '',
+    custom_ad_media_type TEXT DEFAULT 'link', -- 'link', 'video', 'webpage'
     safety_status TEXT DEFAULT 'pending', -- 'pending', 'clean', 'malicious'
     safety_checked_at TIMESTAMP,
     FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE

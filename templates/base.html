@@ -6,7 +6,7 @@
     <title>{% block title %}Snip — High-Performance URL Shortener{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
@@ -23,7 +23,13 @@
             <div class="flash-container">
                 {% for category, message in messages %}
                     <div class="flash-msg {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
-                        <span>{% if category == 'success' %}✓{% else %}!{% endif %}</span>
+                        <span style="display: flex; align-items: center;">
+                            {% if category == 'success' %}
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            {% else %}
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            {% endif %}
+                        </span>
                         <span>{{ message }}</span>
                     </div>
                 {% endfor %}

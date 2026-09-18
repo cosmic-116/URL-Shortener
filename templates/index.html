@@ -5,13 +5,26 @@
 <!-- Floating Pill Navbar (Apple / Vercel style) -->
 <header class="nav-floating">
     <a href="/" class="logo-minimal">
-        Snip<div class="dot"></div>
+        <div class="brand-symbol">
+            <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <g class="blade-top">
+                    <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                    <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                </g>
+                <g class="blade-bottom">
+                    <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                    <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                </g>
+                <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <span class="brand-text">Snip</span><span class="dot"></span>
     </a>
     <nav class="nav-links">
         {% if session.get('user_id') %}
-            <a href="/dashboard" class="nav-link">Dashboard</a>
-            <a href="/logout" class="nav-link">Logout</a>
-            <a href="/dashboard" class="nav-cta">Console →</a>
+            <a href="/logout" class="nav-link">Log Out</a>
+            <a href="/dashboard" class="nav-cta">Dashboard →</a>
         {% else %}
             <a href="/login" class="nav-link">Log In</a>
             <a href="/register" class="nav-cta">Sign Up Free</a>
@@ -23,44 +36,35 @@
 <section style="min-height: 90vh; padding: 180px 24px 80px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
     
     <!-- Main Heading (Fail-safe, beautiful metallic gradient) -->
-    <h1 class="hero-heading">
+    <h1 class="hero-heading" style="margin-bottom: 48px;">
         <span class="text-gradient">Shorten Links.</span><br>
         <span>Amplify Reach.</span>
     </h1>
-
-    <p class="hero-subtitle">
-        Lightning-fast edge redirects, automated threat intelligence, and precision click telemetry. Minimal by design.
-    </p>
 
     <!-- Aceternity-inspired Spotlight / Border-Beam Input Container -->
     <div style="width: 100%; max-width: 780px;">
         <div class="border-beam-box">
             <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                <path d="M9 17H7A5 5 0 0 1 7 7h2"/>
+                <path d="M15 7h2a5 5 0 1 1 0 10h-2"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
             </svg>
             <form id="shortenForm" style="display: flex; flex: 1; align-items: center; gap: 12px;">
                 <input type="url" name="url" class="input-hero" placeholder="Paste your massive link here..." required autocomplete="off">
                 <button type="submit" class="btn-snip">
                     <span>Snip It</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
                 </button>
             </form>
-        </div>
-
-        <!-- Micro Feature Badges -->
-        <div class="input-features">
-            <div class="feature-pill"><span class="check">✓</span> <span>Threat Shield Armed</span></div>
-            <div class="feature-pill"><span class="check">✓</span> <span>&lt;10ms Edge Routing</span></div>
-            <div class="feature-pill"><span class="check">✓</span> <span>Instant Vector QR</span></div>
         </div>
 
         <!-- Result Box (Hidden until shortened) -->
         <div id="result-box" style="display: none;">
             <div class="result-card-modern">
                 <div style="text-align: left;">
-                    <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-emerald); margin-bottom: 6px;">
-                        ✓ Link Generated & Shield Verified
+                    <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-emerald); margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Link Generated & Heuristic Verified</span>
                     </p>
                     <a id="short-url" href="#" target="_blank" class="result-url"></a>
                 </div>
@@ -85,57 +89,129 @@
 <!-- Dual Infinite Marquee with Feathered Blur Edges (Magic UI Style) -->
 <section class="marquee-wrapper">
     <div class="marquee-track">
-        <div class="marquee-item">⚡ &lt;10MS REDIRECTS</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+            <span>INSTANT REDIRECTS</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">🛡️ ZERO PHISHING GUARANTEE</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>HEURISTIC THREAT SHIELD</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">📊 REALTIME CLICK TELEMETRY</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span>REAL-TIME CLICK TELEMETRY</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">📱 DYNAMIC QR STUDIO</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+            <span>DYNAMIC QR STUDIO</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">🌐 GLOBAL EDGE ROUTING</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
+            <span>SPONSORED AD MONETIZATION</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">💰 PASSIVE MONETIZATION</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>SSRF EXPLOIT GUARD</span>
+        </div>
         <div class="marquee-bullet"></div>
         <!-- Loop duplicate -->
-        <div class="marquee-item">⚡ &lt;10MS REDIRECTS</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+            <span>INSTANT REDIRECTS</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">🛡️ ZERO PHISHING GUARANTEE</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>HEURISTIC THREAT SHIELD</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">📊 REALTIME CLICK TELEMETRY</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span>REAL-TIME CLICK TELEMETRY</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">📱 DYNAMIC QR STUDIO</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+            <span>DYNAMIC QR STUDIO</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">🌐 GLOBAL EDGE ROUTING</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
+            <span>SPONSORED AD MONETIZATION</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item">💰 PASSIVE MONETIZATION</div>
+        <div class="marquee-item">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>SSRF EXPLOIT GUARD</span>
+        </div>
         <div class="marquee-bullet"></div>
     </div>
     <div class="marquee-track reverse">
-        <div class="marquee-item outline">HIGH VELOCITY</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>HIGH VELOCITY</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">MALWARE PREVENTION</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>MALWARE PREVENTION</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">NO COOKIES</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <span>NO COOKIES</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">CLEAN ANALYTICS</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <span>CLEAN ANALYTICS</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">99.99% RELIABILITY</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <span>VECTOR QR CODES</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">ENTERPRISE SPEED</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+            <span>PASSIVE REVENUE</span>
+        </div>
         <div class="marquee-bullet"></div>
         <!-- Loop duplicate -->
-        <div class="marquee-item outline">HIGH VELOCITY</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>HIGH VELOCITY</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">MALWARE PREVENTION</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>MALWARE PREVENTION</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">NO COOKIES</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <span>NO COOKIES</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">CLEAN ANALYTICS</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <span>CLEAN ANALYTICS</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">99.99% RELIABILITY</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <span>VECTOR QR CODES</span>
+        </div>
         <div class="marquee-bullet"></div>
-        <div class="marquee-item outline">ENTERPRISE SPEED</div>
+        <div class="marquee-item outline">
+            <svg class="marquee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+            <span>PASSIVE REVENUE</span>
+        </div>
         <div class="marquee-bullet"></div>
     </div>
 </section>
@@ -144,7 +220,7 @@
 <section class="section-container" style="margin-top: 40px;">
     <div class="section-header">
         <h2 class="section-title">Engineered For Scale.</h2>
-        <p class="section-desc">Every URL shortened on Snip passes through intelligent threat heuristics, edge DNS caching, and real-time telemetry.</p>
+        <p class="section-desc">Every URL shortened on Snip is guarded by heuristic threat inspection, SSRF exploit prevention, and real-time click telemetry.</p>
     </div>
 
     <div class="bento-grid">
@@ -153,15 +229,16 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px;">
                 <div>
                     <div class="bento-tag">
-                        <span style="color: var(--accent-emerald);">●</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                         <span>Heuristic Threat Engine</span>
                     </div>
-                    <h3 class="bento-headline">Real-Time Threat Detection</h3>
+                    <h3 class="bento-headline">Automated Threat &amp; SSRF Guard</h3>
                     <p class="bento-text">
-                        Every link destination is continuously verified against 70+ global phishing databases and heuristic malware engines before any redirect occurs.
+                        Every link destination is inspected synchronously against private network ranges, loopback endpoints, and heuristic malicious patterns before redirection.
                     </p>
-                    <div style="margin-top: 24px; display: inline-flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; color: var(--accent-emerald); font-weight: 600;">
-                        <span>🛡️ Status: All Destinations Verified Safe</span>
+                    <div style="margin-top: 24px; display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; color: var(--accent-emerald); font-weight: 600;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        <span>Status: Heuristic Engine Active</span>
                     </div>
                 </div>
 
@@ -177,50 +254,52 @@
         <div class="bento-cell bento-span-4" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div class="bento-tag">
-                    <span>📱 Vector QR Generator</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                    <span>Dynamic QR Studio</span>
                 </div>
                 <h3 class="bento-headline">Dynamic QR Studio</h3>
                 <p class="bento-text">
-                    Instant SVG and 300-DPI high-res PNG downloads. Rounded modules and gradient presets ready for print.
+                    Generate scalable vector SVGs and 1200 DPI PNGs with customizable module geometry, color masks, and direct embed endpoints.
                 </p>
             </div>
             <div style="margin-top: 32px; padding: 20px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="6" height="6" x="3" y="3" rx="1"/><rect width="6" height="6" x="15" y="3" rx="1"/><rect width="6" height="6" x="3" y="15" rx="1"/><path d="M15 15h.01M18 18h.01M15 21h.01M21 15h.01M18 21h.01"/></svg>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="6" height="6" x="3" y="3" rx="1"/><rect width="6" height="6" x="15" y="3" rx="1"/><rect width="6" height="6" x="3" y="15" rx="1"/><path d="M15 15h.01M18 18h.01M15 21h.01M21 15h.01M18 21h.01"/></svg>
                     <div>
                         <p style="font-size: 13px; font-weight: 700;">Vector Ready</p>
-                        <p style="font-size: 11px; color: var(--text-muted);">Print & Digital</p>
+                        <p style="font-size: 11px; color: var(--text-muted);">Print &amp; Digital</p>
                     </div>
                 </div>
                 <span style="font-size: 11px; font-weight: 700; color: var(--accent-white); background: rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 6px;">SVG / PNG</span>
             </div>
         </div>
 
-        <!-- Card 3: Global Edge Network (Span 4) -->
+        <!-- Card 3: Sponsored Ad Monetization (Span 4) -->
         <div class="bento-cell bento-span-4">
             <div class="bento-tag">
-                <span>🌐 Edge Infrastructure</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
+                <span>Monetization Engine</span>
             </div>
-            <h3 class="bento-headline">Global Edge Routing</h3>
+            <h3 class="bento-headline">Sponsored Interstitials</h3>
             <p class="bento-text">
-                Sub-10ms response times globally through distributed edge nodes.
+                Toggle ad transit per link to monetize outgoing traffic with automated HMAC token verification and live payouts.
             </p>
             <div class="latency-grid">
                 <div class="latency-item">
-                    <span class="latency-city">Tokyo</span>
-                    <span class="latency-ms">8ms</span>
+                    <span class="latency-city">Per-Click Rate</span>
+                    <span class="latency-ms">$0.05</span>
                 </div>
                 <div class="latency-item">
-                    <span class="latency-city">Frankfurt</span>
-                    <span class="latency-ms">5ms</span>
+                    <span class="latency-city">Effective CPM</span>
+                    <span class="latency-ms">$50.00</span>
                 </div>
                 <div class="latency-item">
-                    <span class="latency-city">Virginia</span>
-                    <span class="latency-ms">3ms</span>
+                    <span class="latency-city">Transit Window</span>
+                    <span class="latency-ms">5 Sec</span>
                 </div>
                 <div class="latency-item">
-                    <span class="latency-city">Singapore</span>
-                    <span class="latency-ms">11ms</span>
+                    <span class="latency-city">Token Guard</span>
+                    <span class="latency-ms">HMAC-SHA</span>
                 </div>
             </div>
         </div>
@@ -228,18 +307,19 @@
         <!-- Card 4: Precision Click Telemetry (Span 8) -->
         <div class="bento-cell bento-span-8">
             <div class="bento-tag">
-                <span>📊 Click Telemetry</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                <span>Live Telemetry</span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <h3 class="bento-headline">Precision Analytics Dashboard</h3>
                     <p class="bento-text">
-                        Inspect traffic patterns, referrer channels, geographic distributions, and conversion timings with zero third-party tracking scripts.
+                        Inspect live traffic velocity, referrer channels, geographic patterns, and click timestamps with zero third-party cookie trackers.
                     </p>
                 </div>
                 <div style="text-align: right;">
-                    <span style="font-size: 28px; font-weight: 800; font-family: var(--font-mono); color: #ffffff;">+24.8K</span>
-                    <p style="font-size: 11px; color: var(--accent-emerald); font-weight: 600;">↑ 34% this week</p>
+                    <span style="font-size: 28px; font-weight: 800; font-family: var(--font-mono); color: #ffffff;">Live</span>
+                    <p style="font-size: 11px; color: var(--accent-emerald); font-weight: 600;">Real-Time Routing</p>
                 </div>
             </div>
 
@@ -330,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 await navigator.clipboard.writeText(urlToCopy);
                 copyBtn.classList.add('copied');
-                copyText.innerText = 'Copied! ✓';
+                copyText.innerText = 'Copied!';
                 setTimeout(() => {
                     copyBtn.classList.remove('copied');
                     copyText.innerText = 'Copy Link';
@@ -343,14 +423,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.execCommand('copy');
                 document.body.removeChild(temp);
                 copyBtn.classList.add('copied');
-                copyText.innerText = 'Copied! ✓';
+                copyText.innerText = 'Copied!';
             }
         });
     }
 
     // 3. Subtle GSAP Entrance (Fail-safe, no opacity trapping)
     if (window.gsap) {
-        gsap.from(".hero-heading, .hero-subtitle, .border-beam-box", {
+        gsap.from(".hero-heading, .border-beam-box", {
             y: 30,
             opacity: 0,
             duration: 0.9,

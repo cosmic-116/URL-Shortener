@@ -6,15 +6,29 @@
 <header class="nav-floating" style="max-width: 1280px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <a href="{{ url_for('index') }}" class="logo-minimal">
-            Snip<div class="dot"></div>
+            <div class="brand-symbol">
+                <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="blade-top">
+                        <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                    </g>
+                    <g class="blade-bottom">
+                        <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                    </g>
+                    <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                    <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="brand-text">Snip</span><span class="dot"></span>
         </a>
         <span style="width: 1px; height: 18px; background: var(--border);"></span>
-        <a href="{{ url_for('dashboard') }}" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500;">Console</a>
+        <a href="{{ url_for('dashboard') }}" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500;">Dashboard</a>
         <span style="font-size: 12px; color: var(--text-muted);">›</span>
         <span style="font-size: 13px; color: var(--text-primary); font-weight: 600;">QR Studio</span>
     </div>
     <div style="display: flex; align-items: center; gap: 14px;">
-        <a href="{{ url_for('dashboard') }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px;">← Back to Console</a>
+        <a href="{{ url_for('dashboard') }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px;">← Back to Dashboard</a>
     </div>
 </header>
 
@@ -77,20 +91,25 @@
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Quick curated styles for print and digital</p>
                 
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    <button type="button" class="btn-outline preset-btn active" onclick="applyPreset('bw', this)" style="background: rgba(255,255,255,0.12); font-weight: 700;">
-                        ⚪ Classic B&amp;W (Default)
+                    <button type="button" class="btn-outline preset-btn active" onclick="applyPreset('bw', this)" style="background: rgba(255,255,255,0.12); font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #ffffff; border: 1px solid #888; display: inline-block;"></span>
+                        Classic B&amp;W (Default)
                     </button>
-                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('dark', this)">
-                        ⚫ Dark Minimal
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('dark', this)" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #000000; border: 1px solid rgba(255,255,255,0.3); display: inline-block;"></span>
+                        Dark Minimal
                     </button>
-                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('emerald', this)">
-                        ⚡ Cyber Emerald
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('emerald', this)" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); display: inline-block;"></span>
+                        Cyber Emerald
                     </button>
-                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('sunset', this)">
-                        🌅 Neon Sunset
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('sunset', this)" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ec4899); display: inline-block;"></span>
+                        Neon Sunset
                     </button>
-                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('ocean', this)">
-                        🌊 Ocean Blue
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('ocean', this)" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #0284c7; box-shadow: 0 0 6px rgba(2,132,199,0.5); display: inline-block;"></span>
+                        Ocean Blue
                     </button>
                 </div>
             </div>
@@ -328,7 +347,7 @@
             <!-- 5. Developer & Integration Links -->
             <div class="bento-cell" style="padding: 28px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <span>💡</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                     <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Developer Integration</h3>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">

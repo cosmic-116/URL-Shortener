@@ -1,15 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Console — Snip Infrastructure{% endblock %}
+{% block title %}Dashboard — Snip Infrastructure{% endblock %}
 {% block content %}
 
 <!-- Floating Dashboard Header -->
 <header class="nav-floating" style="max-width: 1280px;">
     <div style="display: flex; align-items: center; gap: 16px;">
         <a href="{{ url_for('index') }}" class="logo-minimal">
-            Snip<div class="dot"></div>
+            <div class="brand-symbol">
+                <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="blade-top">
+                        <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                    </g>
+                    <g class="blade-bottom">
+                        <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                    </g>
+                    <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                    <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="brand-text">Snip</span><span class="dot"></span>
         </a>
         <span style="width: 1px; height: 18px; background: var(--border);"></span>
-        <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Console</span>
+        <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Dashboard</span>
     </div>
     <div style="display: flex; align-items: center; gap: 20px;">
         <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary);">
@@ -25,19 +39,24 @@
     <!-- Top Stat Banner with Live Graphs -->
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px;">
         
-        <!-- Card 1: Earnings -->
+        <!-- Card 1: Earnings / Balance -->
         <div class="bento-cell" style="padding: 28px; position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-                <span class="bento-tag" style="margin: 0;">💰 Ad Revenue</span>
-                <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">$5.00 eCPM</span>
+                <span class="bento-tag" style="margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+                    Ad Balance
+                </span>
+                <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">+$0.02 / -$0.01</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
-                <span style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: var(--accent-emerald); letter-spacing: -0.03em;">
+                <span id="statEarnings" style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: {% if earnings >= 0 %}var(--accent-emerald){% else %}#ef4444{% endif %}; letter-spacing: -0.03em;">
                     ${{ "%.2f"|format(earnings) }}
                 </span>
-                <span style="font-size: 13px; color: var(--text-muted);">USD</span>
+                <span style="font-size: 13px; color: var(--text-muted);">USD Net</span>
             </div>
-            <p style="font-size: 12px; color: var(--text-secondary);">Accrued revenue from sponsored redirects</p>
+            <p style="font-size: 12px; color: var(--text-secondary);">
+                Earn $0.02 on network ads • Run custom ads at $0.01/click
+            </p>
             
             <!-- Live Waveform -->
             <svg viewBox="0 0 100 24" style="width: 100%; height: 36px; margin-top: 14px; overflow: visible;" preserveAspectRatio="none">
@@ -48,7 +67,10 @@
         <!-- Card 2: Active Links -->
         <div class="bento-cell" style="padding: 28px;">
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-                <span class="bento-tag" style="margin: 0;">🔗 Active Links</span>
+                <span class="bento-tag" style="margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+                    Active Links
+                </span>
                 <span style="font-size: 11px; color: var(--text-muted);">Unlimited Tier</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
@@ -68,11 +90,14 @@
         <!-- Card 3: Total Clicks & Telemetry -->
         <div class="bento-cell" style="padding: 28px;">
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-                <span class="bento-tag" style="margin: 0;">⚡ Total Clicks</span>
+                <span class="bento-tag" style="margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Total Clicks
+                </span>
                 <span style="font-size: 11px; color: #f59e0b; font-weight: 700; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">Live Stream</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
-                <span style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: #f59e0b; letter-spacing: -0.03em;">
+                <span id="statClicks" style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: #f59e0b; letter-spacing: -0.03em;">
                     {{ total_clicks }}
                 </span>
                 <span style="font-size: 13px; color: var(--text-muted);">Impressions</span>
@@ -153,19 +178,23 @@
             <form id="inlineShortenForm" style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
                 <input type="url" name="url" placeholder="Paste destination URL (e.g. https://github.com/my-project)..." required class="form-input" style="flex: 2; min-width: 260px;">
                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer;">
-                    <input type="checkbox" name="ads_enabled" value="true" style="cursor: pointer;">
+                    <input type="checkbox" name="ads_enabled" value="true" checked style="cursor: pointer;">
                     <span>Monetize with Ads</span>
                 </label>
+                <select name="ad_type" class="form-input" style="width: auto; font-size: 12.5px; padding: 8px 12px; cursor: pointer;">
+                    <option value="network">Network Ads (Earn $0.02/click)</option>
+                    <option value="custom">Custom Ad (-$0.01/click)</option>
+                </select>
                 <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Create Short URL</button>
             </form>
         </div>
 
         <!-- Table Columns Header -->
-        <div style="display: grid; grid-template-columns: 2.5fr 3.5fr 80px 150px 100px 90px; padding: 12px 32px; border-bottom: 1px solid var(--border); gap: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); align-items: center;">
+        <div style="display: grid; grid-template-columns: 2.2fr 3fr 70px 190px 85px 115px; padding: 12px 32px; border-bottom: 1px solid var(--border); gap: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); align-items: center;">
             <span>Short Link</span>
             <span>Destination</span>
             <span>Clicks</span>
-            <span>Ads Allowed</span>
+            <span>Monetization</span>
             <span>Safety</span>
             <span style="text-align: right;">Actions</span>
         </div>
@@ -174,14 +203,25 @@
         <div id="linksTableBody">
             {% if links|length == 0 %}
                 <div style="text-align: center; padding: 80px 40px;">
-                    <div style="font-size: 44px; margin-bottom: 16px;">🔗</div>
+                    <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+                    </div>
                     <p style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">No links created yet</p>
                     <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">Shorten a URL to start tracking click metrics and earning revenue.</p>
                     <button onclick="toggleCreateDrawer()" class="btn-primary" style="width: auto; padding: 10px 24px; border-radius: var(--radius-sm);">Create Your First Link</button>
                 </div>
             {% else %}
                 {% for link in links %}
-                <div class="table-row link-item-row" data-search="{{ link.code }} {{ link.original_url }}" data-preview="/preview/{{ link.code }}.jpg" style="display: grid; grid-template-columns: 2.5fr 3.5fr 80px 150px 100px 90px; padding: 16px 32px; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                <div class="table-row link-item-row" 
+                     data-search="{{ link.code }} {{ link.original_url }}" 
+                     data-preview="/preview/{{ link.code }}.jpg" 
+                     data-code="{{ link.code }}"
+                     data-ad-type="{{ link.ad_type or 'network' }}"
+                     data-custom-url="{{ (link.custom_ad_url or '') | e }}"
+                     data-custom-title="{{ (link.custom_ad_title or '') | e }}"
+                     data-custom-desc="{{ (link.custom_ad_desc or '') | e }}"
+                     data-custom-media="{{ (link.custom_ad_media_type or 'link') | e }}"
+                     style="display: grid; grid-template-columns: 2.2fr 3fr 70px 190px 85px 115px; padding: 16px 32px; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
                     
                     <!-- Short URL with 1-click Copy -->
                     <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
@@ -193,45 +233,65 @@
                         </a>
                     </div>
 
-                    <!-- Destination -->
-                    <div style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ link.original_url }}">
+                    <!-- Destination (Hover trigger for website snapshot preview) -->
+                    <div class="destination-preview-trigger" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="Hover to preview: {{ link.original_url }}">
                         {{ link.original_url }}
                     </div>
 
                     <!-- Clicks -->
-                    <div style="font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary);">
+                    <div id="linkClicks-{{ link.code }}" style="font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary);">
                         {{ link.click_count }}
                     </div>
 
-                    <!-- Ads Allowed / Disallowed Toggle Switch -->
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <!-- Monetization / Ads Allowed Switch -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         <label class="switch-toggle" title="Toggle Ads Monetization">
                             <input type="checkbox" onchange="toggleAds('{{ link.code }}', this)" {% if link.ads_enabled %}checked{% endif %}>
                             <span class="switch-slider"></span>
                         </label>
-                        <span id="adPill-{{ link.code }}" class="pill {% if link.ads_enabled %}pill-ads-on{% else %}pill-ads-off{% endif %}">
-                            {% if link.ads_enabled %}Monetized{% else %}Off{% endif %}
+                        <span id="adPill-{{ link.code }}" 
+                              class="pill {% if link.ads_enabled %}{% if link.ad_type == 'custom' %}pill-ad-custom{% else %}pill-ads-on{% endif %}{% else %}pill-ads-off{% endif %}" 
+                              style="cursor: pointer; font-size: 11px; padding: 3px 8px;"
+                              onclick="openAdConfigModalFromRow(this)"
+                              title="Click to configure ad settings">
+                            {% if link.ads_enabled %}
+                                {% if link.ad_type == 'custom' %}Custom (-$0.01){% else %}Network (+$0.02){% endif %}
+                            {% else %}
+                                Off
+                            {% endif %}
                         </span>
                     </div>
 
                     <!-- Safety Status -->
                     <div>
                         {% if link.safety_status == 'clean' %}
-                            <span class="pill pill-clean">✓ Clean</span>
+                            <span class="pill pill-clean" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Clean
+                            </span>
                         {% elif link.safety_status == 'malicious' %}
-                            <span class="pill pill-flagged">⚠ Flagged</span>
+                            <span class="pill pill-flagged" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Flagged
+                            </span>
                         {% else %}
-                            <span class="pill" style="background: rgba(254, 202, 87, 0.1); color: #feca57; border: 1px solid rgba(254, 202, 87, 0.2);">⏳ Checking</span>
+                            <span class="pill" style="background: rgba(254, 202, 87, 0.1); color: #feca57; border: 1px solid rgba(254, 202, 87, 0.2); display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Checking
+                            </span>
                         {% endif %}
                     </div>
 
-                    <!-- Actions: QR Studio & Sleek Trash Delete -->
-                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                    <!-- Actions: Configure Ad, QR Studio & Sleek Trash Delete -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                        <button class="btn-action-icon" onclick="openAdConfigModalFromRow(this)" title="Configure Ad Campaign (Network or Custom)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+                        </button>
                         <a href="{{ url_for('dashboard_qr', code=link.code) }}" class="btn-action-icon" title="View QR Studio">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="19" y="19" width="2" height="2"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="19" y="19" width="2" height="2"/></svg>
                         </a>
                         <button class="btn-action-icon btn-action-delete" onclick="deleteLink('{{ link.code }}', this)" title="Delete Link">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                         </button>
                     </div>
 
@@ -246,6 +306,107 @@
 
 <!-- Floating Website Preview Image Container -->
 <img id="globalPreview" class="global-swipeimage" src="" alt="Preview">
+
+<!-- Ad Campaign Configuration Modal -->
+<div id="adConfigModal" class="modal-backdrop" style="display: none;" onclick="if(event.target === this) closeAdConfigModal()">
+    <div class="modal-card" style="max-width: 560px;">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="modal-icon-badge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+                </div>
+                <div>
+                    <h3 style="font-size: 16.5px; font-weight: 800; color: #fff; margin: 0;">Ad Campaign Settings</h3>
+                    <p id="modalLinkCode" style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0; font-family: var(--font-mono);"></p>
+                </div>
+            </div>
+            <button type="button" class="btn-action-icon" onclick="closeAdConfigModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <form id="adConfigForm" style="padding: 24px;">
+            <input type="hidden" id="configCode" name="code">
+
+            <!-- Ad Mode Select Cards -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px;">Choose Ad Delivery Engine</div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <!-- Mode 1: Network Ads -->
+                <label id="labelNetworkAd" class="ad-mode-option selected" style="cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--accent-emerald); display: block;">
+                    <input type="radio" name="ad_type" value="network" checked onchange="switchAdMode('network')" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #fff;">Network Ads</span>
+                        <span style="font-size: 10.5px; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">Earn +$0.02</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0;">Monetize with Google Network ads. You get paid for every transit.</p>
+                </label>
+
+                <!-- Mode 2: Custom Promotion -->
+                <label id="labelCustomAd" class="ad-mode-option" style="cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); display: block;">
+                    <input type="radio" name="ad_type" value="custom" onchange="switchAdMode('custom')" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #fff;">My Custom Ad</span>
+                        <span style="font-size: 10.5px; font-weight: 700; color: #c084fc; background: rgba(168, 85, 247, 0.12); padding: 2px 6px; border-radius: 4px;">Cost -$0.01</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0;">Showcase your own webpage, video, or link on transit.</p>
+                </label>
+            </div>
+
+            <!-- Custom Ad Fields (Shown when ad_type === 'custom') -->
+            <div id="customAdFields" style="display: none; flex-direction: column; gap: 14px; margin-bottom: 20px; padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Format</label>
+                    <div style="display: flex; gap: 14px;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
+                            <input type="radio" name="custom_ad_media_type" value="link" checked onchange="updateCustomPreview()"> Link / Banner
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
+                            <input type="radio" name="custom_ad_media_type" value="video" onchange="updateCustomPreview()"> YouTube Video
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
+                            <input type="radio" name="custom_ad_media_type" value="webpage" onchange="updateCustomPreview()"> Webpage Embed
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Campaign Title / Headline</label>
+                    <input type="text" id="configAdTitle" name="custom_ad_title" placeholder="e.g. Try our modern developer tool" class="form-input" oninput="updateCustomPreview()" style="font-size: 13px; padding: 8px 12px;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Target URL / Video Link <span style="color: var(--accent); font-weight: 400;">*</span></label>
+                    <input type="url" id="configAdUrl" name="custom_ad_url" placeholder="https://myproduct.com or https://youtu.be/..." class="form-input" oninput="updateCustomPreview()" style="font-size: 13px; padding: 8px 12px;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Description / Call-to-Action</label>
+                    <textarea id="configAdDesc" name="custom_ad_desc" placeholder="Brief pitch describing your product or video..." class="form-input" rows="2" oninput="updateCustomPreview()" style="font-size: 13px; padding: 8px 12px;"></textarea>
+                </div>
+
+                <!-- Mini Live Preview -->
+                <div style="margin-top: 4px;">
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px;">Live Transit Preview</div>
+                    <div id="customAdPreviewBox" style="padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-size: 10px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.15); padding: 2px 6px; border-radius: 4px;">Sponsored Promotion</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">snip transit</span>
+                        </div>
+                        <div id="previewTitle" style="font-size: 12.5px; font-weight: 700; color: #fff; margin-bottom: 2px;">Headline Preview</div>
+                        <div id="previewDesc" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">Pitch preview will appear here...</div>
+                        <span style="display: inline-block; font-size: 10.5px; font-weight: 700; background: #fff; color: #000; padding: 4px 10px; border-radius: 6px;">Visit Website</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn-outline" onclick="closeAdConfigModal()" style="padding: 9px 16px; font-size: 12.5px;">Cancel</button>
+                <button type="submit" id="btnSaveAdConfig" class="btn-primary" style="width: auto; padding: 9px 20px; font-size: 12.5px;">Save Settings</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}
 
@@ -294,7 +455,7 @@ async function copyLink(url, btn) {
     try {
         await navigator.clipboard.writeText(url);
         const orig = btn.innerHTML;
-        btn.innerHTML = '<span style="color:var(--accent-emerald); font-size:12px;">✓</span>';
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
         setTimeout(() => { btn.innerHTML = orig; }, 2000);
     } catch (e) {
         prompt('Copy this URL:', url);
@@ -314,13 +475,21 @@ function filterLinks(query) {
 // 5. Interactive Ads Allowed / Disallowed Toggle
 async function toggleAds(code, checkbox) {
     const pill = document.getElementById('adPill-' + code);
+    const row = checkbox.closest('.link-item-row');
+    const adType = row ? (row.dataset.adType || 'network') : 'network';
+
     try {
         const res = await fetch('/dashboard/toggle-ads/' + code, { method: 'POST' });
         const data = await res.json();
         if (res.ok) {
             if (data.ads_enabled) {
-                pill.className = 'pill pill-ads-on';
-                pill.innerText = 'Monetized';
+                if (adType === 'custom') {
+                    pill.className = 'pill pill-ad-custom';
+                    pill.innerText = 'Custom (-$0.01)';
+                } else {
+                    pill.className = 'pill pill-ads-on';
+                    pill.innerText = 'Network (+$0.02)';
+                }
             } else {
                 pill.className = 'pill pill-ads-off';
                 pill.innerText = 'Off';
@@ -334,6 +503,124 @@ async function toggleAds(code, checkbox) {
         alert('Network error updating ads status.');
     }
 }
+
+// 5b. Ad Configuration Modal Handlers
+function openAdConfigModalFromRow(trigger) {
+    const row = trigger.closest('.link-item-row');
+    if (!row) return;
+    const code = row.dataset.code;
+    const adType = row.dataset.adType || 'network';
+    const customUrl = row.dataset.customUrl || '';
+    const customTitle = row.dataset.customTitle || '';
+    const customDesc = row.dataset.customDesc || '';
+    const customMedia = row.dataset.customMedia || 'link';
+
+    document.getElementById('configCode').value = code;
+    document.getElementById('modalLinkCode').innerText = '/' + code;
+    document.getElementById('configAdTitle').value = customTitle;
+    document.getElementById('configAdUrl').value = customUrl;
+    document.getElementById('configAdDesc').value = customDesc;
+
+    const mediaRadio = document.querySelector(`input[name="custom_ad_media_type"][value="${customMedia}"]`);
+    if (mediaRadio) mediaRadio.checked = true;
+
+    switchAdMode(adType);
+    updateCustomPreview();
+
+    const modal = document.getElementById('adConfigModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeAdConfigModal() {
+    const modal = document.getElementById('adConfigModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function switchAdMode(mode) {
+    const labelNet = document.getElementById('labelNetworkAd');
+    const labelCust = document.getElementById('labelCustomAd');
+    const customFields = document.getElementById('customAdFields');
+    const radioNet = document.querySelector('input[name="ad_type"][value="network"]');
+    const radioCust = document.querySelector('input[name="ad_type"][value="custom"]');
+
+    if (mode === 'custom') {
+        if (radioCust) radioCust.checked = true;
+        labelCust.classList.add('selected');
+        labelCust.style.borderColor = '#a855f7';
+        labelNet.classList.remove('selected');
+        labelNet.style.borderColor = 'var(--border)';
+        customFields.style.display = 'flex';
+    } else {
+        if (radioNet) radioNet.checked = true;
+        labelNet.classList.add('selected');
+        labelNet.style.borderColor = 'var(--accent-emerald)';
+        labelCust.classList.remove('selected');
+        labelCust.style.borderColor = 'var(--border)';
+        customFields.style.display = 'none';
+    }
+}
+
+function updateCustomPreview() {
+    const title = document.getElementById('configAdTitle').value.trim();
+    const desc = document.getElementById('configAdDesc').value.trim();
+    const pTitle = document.getElementById('previewTitle');
+    const pDesc = document.getElementById('previewDesc');
+    if (pTitle) pTitle.innerText = title || 'Headline Preview';
+    if (pDesc) pDesc.innerText = desc || 'Pitch preview will appear here...';
+}
+
+const adConfigForm = document.getElementById('adConfigForm');
+if (adConfigForm) {
+    adConfigForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('configCode').value;
+        const btn = document.getElementById('btnSaveAdConfig');
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+
+        const formData = new FormData(adConfigForm);
+        try {
+            const res = await fetch('/dashboard/configure-ad/' + code, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const row = document.querySelector(`.link-item-row[data-code="${code}"]`);
+                if (row) {
+                    row.dataset.adType = data.ad_type;
+                    row.dataset.customUrl = data.custom_ad_url || '';
+                    row.dataset.customTitle = data.custom_ad_title || '';
+                    row.dataset.customDesc = data.custom_ad_desc || '';
+                    row.dataset.customMedia = data.custom_ad_media_type || 'link';
+
+                    const pill = document.getElementById('adPill-' + code);
+                    const checkbox = row.querySelector('.switch-toggle input[type="checkbox"]');
+                    if (checkbox) checkbox.checked = true;
+
+                    if (pill) {
+                        if (data.ad_type === 'custom') {
+                            pill.className = 'pill pill-ad-custom';
+                            pill.innerText = 'Custom (-$0.01)';
+                        } else {
+                            pill.className = 'pill pill-ads-on';
+                            pill.innerText = 'Network (+$0.02)';
+                        }
+                    }
+                }
+                closeAdConfigModal();
+            } else {
+                alert(data.error || 'Failed to save configuration.');
+            }
+        } catch (err) {
+            alert('Error updating ad campaign settings.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Save Settings';
+        }
+    });
+}
+
 
 // 6. Sleek Delete Functionality
 async function deleteLink(code, btn) {
@@ -424,11 +711,11 @@ if (globalFrame && window.gsap) {
         onReverseComplete: stopFollow
     });
 
-    gsap.utils.toArray(".table-row").forEach((el) => {
+    // 8b. Hover preview only triggers when hovering over the Destination cell
+    gsap.utils.toArray(".destination-preview-trigger").forEach((el) => {
         el.addEventListener("mouseenter", (e) => {
-            if (e.target.closest('button, a, input, label')) return;
-
-            let previewUrl = el.getAttribute("data-preview");
+            const row = el.closest('.table-row');
+            let previewUrl = row ? row.getAttribute("data-preview") : null;
             if (previewUrl) {
                 previewUrl = previewUrl + "?t=" + new Date().getTime();
                 globalFrame.src = previewUrl;
@@ -442,13 +729,58 @@ if (globalFrame && window.gsap) {
         el.addEventListener("mouseleave", () => {
             fade.reverse();
         });
-        
-        const actions = el.querySelectorAll('button, a, input, label');
-        actions.forEach(action => {
-            action.addEventListener('mouseenter', () => fade.reverse());
-            action.addEventListener('mouseleave', () => fade.play());
-        });
     });
 }
+
+// 9. Real-time Live Telemetry Poller (Updates dashboard with each click without page reload)
+let lastKnownEarnings = {{ earnings }};
+let lastKnownClicks = {{ total_clicks }};
+
+async function pollLiveTelemetry() {
+    try {
+        const res = await fetch('/dashboard/live-stats');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Update Total Clicks
+        const clicksEl = document.getElementById('statClicks');
+        if (clicksEl && data.total_clicks !== lastKnownClicks) {
+            lastKnownClicks = data.total_clicks;
+            clicksEl.innerText = data.total_clicks;
+            if (window.gsap) {
+                gsap.fromTo(clicksEl, { scale: 1.22, color: '#10b981' }, { scale: 1, color: '#f59e0b', duration: 0.6, ease: "back.out(2)" });
+            }
+        }
+
+        // Update Ad Balance
+        const earnEl = document.getElementById('statEarnings');
+        if (earnEl && data.earnings !== lastKnownEarnings) {
+            lastKnownEarnings = data.earnings;
+            earnEl.innerText = '$' + data.earnings_formatted;
+            earnEl.style.color = data.earnings >= 0 ? 'var(--accent-emerald)' : '#ef4444';
+            if (window.gsap) {
+                gsap.fromTo(earnEl, { scale: 1.22 }, { scale: 1, duration: 0.6, ease: "back.out(2)" });
+            }
+        }
+
+        // Update per-link click counts in the table
+        if (Array.isArray(data.links)) {
+            data.links.forEach(l => {
+                const cell = document.getElementById('linkClicks-' + l.code);
+                if (cell && cell.innerText.trim() !== String(l.clicks)) {
+                    cell.innerText = l.clicks;
+                    if (window.gsap) {
+                        gsap.fromTo(cell, { color: 'var(--accent-emerald)', scale: 1.25 }, { color: 'var(--text-primary)', scale: 1, duration: 0.5 });
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        // Silently catch background poll network errors
+    }
+}
+
+// Poll every 2 seconds for ultra-responsive live updates
+setInterval(pollLiveTelemetry, 2000);
 </script>
 {% endblock %}

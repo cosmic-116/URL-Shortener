@@ -1,69 +1,105 @@
 {% extends "base.html" %}
-{% block title %}Verifying Transit — Snip{% endblock %}
+{% block title %}Connecting to Destination — Snip{% endblock %}
 {% block content %}
 
 <div class="transit-container">
     
     <div class="transit-card">
         
-        <!-- Status Pill -->
-        <div class="status-pill" style="margin-bottom: 20px;">
-            <span class="status-dot"></span>
-            <span>Secure Transit Gateway • 256-Bit SSL Handshake</span>
-        </div>
-
-        <h1 style="font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 8px;">
+        <h1 style="font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 24px;">
             Connecting to Destination.
         </h1>
-        <p style="font-size: 14px; color: var(--text-secondary); max-width: 380px; margin: 0 auto 28px; line-height: 1.6;">
-            Sponsored links keep Snip free, high-speed, and accessible worldwide. Your redirect is preparing...
-        </p>
 
-        <!-- High-Tech Animated Halo Countdown Ring -->
+        <!-- High-Precision Butter-Smooth Animated Countdown Ring (Zero Boxyness) -->
         <div class="transit-halo">
-            <svg class="transit-svg-ring" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="5"/>
-                <circle id="countdownRing" cx="50" cy="50" r="44" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-dasharray="276" stroke-dashoffset="0" style="transition: stroke-dashoffset 0.9s linear, stroke 0.4s ease; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));"/>
+            <svg class="transit-svg-ring" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="4"/>
+                <circle id="countdownRing" cx="60" cy="60" r="52" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="326.726" stroke-dashoffset="0"/>
             </svg>
-            <div id="countDisplay" class="transit-count-text">5</div>
+            <div id="countDisplay" class="transit-count-text">10</div>
         </div>
 
-        <!-- Sleek High-Tech Sponsor Showcase Card (Aceternity Style) -->
-        <div class="sponsor-box">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">Verified Partner</span>
-                </div>
-                <span class="pill" style="background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); font-size: 11px;">Sponsored</span>
+        <!-- Ad Viewability Focus Warning Notice -->
+        <div id="pauseNotice" class="pause-notice" style="display: none;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+            <span>Timer Paused • Keep ad in view to continue</span>
+        </div>
+
+        <!-- Ad Showcase Box (Custom User Ad or Network Ad Slot) -->
+        <div class="ad-transit-box">
+            <div class="ad-transit-header">
+                <span class="pill-ad-status">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    {% if link and link.ad_type == 'custom' %}Sponsored Promotion{% else %}Sponsored{% endif %}
+                </span>
+                <button type="button" class="btn-ad-here" onclick="openAdHereModal()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    <span>Ad Here</span>
+                </button>
             </div>
 
-            <!-- Sleek Sponsor Content -->
-            <div style="display: flex; gap: 16px; align-items: center;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
-                    ⚡
-                </div>
-                <div>
-                    <h4 style="font-size: 14.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px;">Snip Enterprise Cloud</h4>
-                    <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.4;">Custom branding domains, API rate boosts, and real-time webhook routing.</p>
-                </div>
-            </div>
+            {% if link and link.ad_type == 'custom' and link.custom_ad_url %}
+                <!-- Custom User Ad Display -->
+                <div class="custom-ad-body">
+                    {% if link.custom_ad_media_type == 'video' %}
+                        <div class="custom-ad-video-wrapper">
+                            {% if 'youtube.com' in link.custom_ad_url or 'youtu.be' in link.custom_ad_url %}
+                                <iframe 
+                                    src="{{ link.custom_ad_url | replace('watch?v=', 'embed/') | replace('youtu.be/', 'www.youtube.com/embed/') }}" 
+                                    title="{{ link.custom_ad_title or 'Sponsored Video' }}"
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                            {% else %}
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; background: rgba(0,0,0,0.4);">
+                                    <a href="{{ link.custom_ad_url }}" target="_blank" rel="noopener noreferrer" class="btn-visit-custom-ad">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                        <span>Watch Video</span>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
 
-            <!-- Live Verification Checklist -->
-            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11.5px; color: var(--text-secondary);">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="color: var(--accent-emerald);">✓</span>
-                    <span>SSL Handshake OK</span>
+                    <div style="margin-top: 4px;">
+                        <h4 class="custom-ad-title">{{ link.custom_ad_title or 'Featured Destination' }}</h4>
+                        {% if link.custom_ad_desc %}
+                            <p class="custom-ad-desc">{{ link.custom_ad_desc }}</p>
+                        {% endif %}
+                        <div class="custom-ad-actions">
+                            <a href="{{ link.custom_ad_url }}" target="_blank" rel="noopener noreferrer" class="btn-visit-custom-ad">
+                                <span>Visit Website</span>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                            </a>
+                            <span class="custom-ad-domain">{{ link.custom_ad_url }}</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="color: var(--accent-emerald);">✓</span>
-                    <span>No Malware Signatures</span>
+            {% else %}
+                <!-- Google / Network Ads Slot Placeholder -->
+                <div class="network-ad-container">
+                    <!-- Google Ads Integration Point: Replace or wrap with AdSense <ins> code -->
+                    <div class="ad-network-placeholder">
+                        <div class="ad-placeholder-graphic">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div>
+                            <div class="ad-headline">Interactive Sponsor Showcase</div>
+                            <div class="ad-subtext">This ad spot supports creators. Feature your project, app, or video here for just $0.01 / click.</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-network-promo" onclick="openAdHereModal()">
+                        <span>Book This Ad Slot — $0.01 / Click</span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
                 </div>
-            </div>
+            {% endif %}
         </div>
 
         <!-- Dynamic Transit Action Button -->
         <a id="transitBtn" href="{{ url_for('continue_ad', token=token) }}" class="btn-transit locked">
-            <span id="btnLabel">Preparing Direct Route (5s)...</span>
+            <span id="btnLabel">Preparing Direct Route (10s)...</span>
             <svg id="arrowIcon" style="display: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
 
@@ -75,52 +111,203 @@
 
 </div>
 
+<!-- "Ad Here" Modal Dialog -->
+<div id="adHereModal" class="modal-backdrop" style="display: none;" onclick="if(event.target === this) closeAdHereModal()">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="modal-icon-badge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div>
+                    <h3 style="font-size: 16.5px; font-weight: 800; color: #fff; margin: 0;">Advertise on Snip</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0;">Reach highly-engaged visitors at transparent flat rates</p>
+                </div>
+            </div>
+            <button type="button" class="btn-action-icon" onclick="closeAdHereModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div style="padding: 24px;">
+            <div class="pricing-feature-pill">
+                <span class="feature-price">$0.01</span>
+                <span class="feature-per">/ visitor click</span>
+            </div>
+
+            <div class="ad-perks-list">
+                <div class="ad-perk-item">
+                    <div class="ad-perk-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                        <strong>Custom Promotion Formats</strong>
+                        <span>Showcase any website, YouTube video embed, or direct product link.</span>
+                    </div>
+                </div>
+                <div class="ad-perk-item">
+                    <div class="ad-perk-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                        <strong>Self-Serve & Flexible</strong>
+                        <span>Set up campaigns in under a minute directly from your Snip Dashboard.</span>
+                    </div>
+                </div>
+                <div class="ad-perk-item">
+                    <div class="ad-perk-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                        <strong>Earn $0.02 / Click with Network Ads</strong>
+                        <span>Switch any short link to Google Network Ads to monetize your audience.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; gap: 10px;">
+                <a href="{{ url_for('dashboard') }}" class="btn-primary" style="flex: 1; justify-content: center; text-decoration: none; padding: 10px 16px; border-radius: var(--radius-sm);">
+                    <span>Configure in Dashboard</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <button type="button" class="btn-outline" onclick="closeAdHereModal()" style="padding: 10px 16px;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block page_scripts %}
 <script>
+function openAdHereModal() {
+    const modal = document.getElementById('adHereModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeAdHereModal() {
+    const modal = document.getElementById('adHereModal');
+    if (modal) modal.style.display = 'none';
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    let timeLeft = 5;
-    const totalTime = 5;
-    const perimeter = 276; // 2 * PI * 44 ≈ 276.46
-    
-    const ring = document.getElementById('countdownRing');
+    const totalDuration = 10000; // Exact 10 seconds (10,000ms)
     const countDisplay = document.getElementById('countDisplay');
+    const ring = document.getElementById('countdownRing');
     const btn = document.getElementById('transitBtn');
     const btnLabel = document.getElementById('btnLabel');
     const arrowIcon = document.getElementById('arrowIcon');
     const subHint = document.getElementById('subHint');
+    const pauseNotice = document.getElementById('pauseNotice');
 
-    const timer = setInterval(() => {
-        timeLeft--;
-        const offset = perimeter - (timeLeft / totalTime) * perimeter;
-        ring.style.strokeDashoffset = offset;
-        
-        if (timeLeft > 0) {
-            countDisplay.innerText = timeLeft;
-            btnLabel.innerText = `Preparing Direct Route (${timeLeft}s)...`;
-        } else {
-            clearInterval(timer);
-            
-            // Countdown Complete States
+    const circumference = 2 * Math.PI * 52; // ~326.726
+    ring.style.strokeDasharray = circumference;
+    ring.style.strokeDashoffset = 0;
+
+    let elapsedActiveTime = 0;
+    let lastTimestamp = null;
+    let isPaused = false;
+    let completed = false;
+    let animFrameId = null;
+
+    function animateStep(timestamp) {
+        if (completed) return;
+
+        if (isPaused) {
+            lastTimestamp = null;
+            return;
+        }
+
+        if (lastTimestamp === null) {
+            lastTimestamp = timestamp;
+        }
+
+        const delta = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+
+        elapsedActiveTime += delta;
+        const progress = Math.min(elapsedActiveTime / totalDuration, 1.0);
+
+        // Smooth continuous 60fps stroke offset
+        ring.style.strokeDashoffset = circumference * progress;
+
+        const remainingSec = Math.max(0, Math.ceil((totalDuration - elapsedActiveTime) / 1000));
+
+        if (elapsedActiveTime < totalDuration) {
+            countDisplay.textContent = remainingSec;
+            btnLabel.textContent = `Preparing Direct Route (${remainingSec}s)...`;
+            animFrameId = requestAnimationFrame(animateStep);
+        } else if (!completed) {
+            completed = true;
+            ring.style.strokeDashoffset = circumference;
             ring.style.stroke = '#10b981';
-            ring.style.filter = 'drop-shadow(0 0 12px rgba(16, 185, 129, 0.8))';
             
-            countDisplay.innerText = '✓';
-            countDisplay.style.color = '#10b981';
-            countDisplay.style.fontSize = '32px';
+            // Clean Emerald checkmark
+            countDisplay.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:block; margin:auto;"><polyline points="20 6 9 17 4 12"/></svg>';
             
-            // Unlock Button with visual glow
             btn.classList.remove('locked');
-            btnLabel.innerText = 'Continue to Destination';
-            arrowIcon.style.display = 'inline-block';
-            subHint.innerHTML = '<span style="color:var(--accent-emerald);">✓ Route Verified.</span> Click above to proceed to destination.';
-            
+            btnLabel.textContent = 'Continue to Destination';
+            if (arrowIcon) arrowIcon.style.display = 'inline-block';
+            if (subHint) subHint.innerHTML = '<span style="color:var(--accent-emerald); font-weight:600;">Route Ready.</span> Click above to proceed to destination.';
+            if (pauseNotice) pauseNotice.style.display = 'none';
+
             if (window.gsap) {
-                gsap.fromTo(btn, { scale: 0.96 }, { scale: 1, duration: 0.4, ease: "back.out(2)" });
+                gsap.fromTo(btn, { scale: 0.97 }, { scale: 1, duration: 0.4, ease: "back.out(2)" });
             }
         }
-    }, 1000);
+    }
+
+    function pauseTimer() {
+        if (completed || isPaused) return;
+        isPaused = true;
+        lastTimestamp = null;
+        if (animFrameId) {
+            cancelAnimationFrame(animFrameId);
+            animFrameId = null;
+        }
+        ring.style.stroke = '#f59e0b';
+        if (pauseNotice) pauseNotice.style.display = 'inline-flex';
+        const remainingSec = Math.max(0, Math.ceil((totalDuration - elapsedActiveTime) / 1000));
+        btnLabel.textContent = `Paused • Ad must remain in view (${remainingSec}s)...`;
+        if (subHint) subHint.innerHTML = '<span style="color:#fbbf24; font-weight:600;">Ad must remain visible.</span> Timer pauses when tab or window is inactive.';
+    }
+
+    function resumeTimer() {
+        if (completed || !isPaused) return;
+        isPaused = false;
+        lastTimestamp = null;
+        ring.style.stroke = '#ffffff';
+        if (pauseNotice) pauseNotice.style.display = 'none';
+        if (subHint) subHint.textContent = 'The gateway button unlocks automatically once countdown reaches zero.';
+        animFrameId = requestAnimationFrame(animateStep);
+    }
+
+    // 1. Tab visibility detection (switching tabs or minimizing window)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden || document.visibilityState === 'hidden') {
+            pauseTimer();
+        } else {
+            resumeTimer();
+        }
+    });
+
+    // 2. Window blur & focus (clicking outside browser window)
+    window.addEventListener('blur', () => {
+        // If user clicked inside an iframe (e.g. playing YouTube video), don't pause!
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+            return;
+        }
+        pauseTimer();
+    });
+
+    window.addEventListener('focus', () => {
+        if (!document.hidden) {
+            resumeTimer();
+        }
+    });
+
+    // Start initial continuous loop
+    animFrameId = requestAnimationFrame(animateStep);
 });
 </script>
 {% endblock %}

@@ -19,8 +19,8 @@
     --radius-md: 14px;
     --radius-lg: 22px;
     --radius-full: 9999px;
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 }
 
 *, *::before, *::after {
@@ -36,6 +36,7 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    letter-spacing: -0.02em;
 }
 
 body {
@@ -140,31 +141,165 @@ body {
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
-/* --- Minimalist Logo --- */
+/* --- Premium Modern Brand Logo --- */
 .logo-minimal {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
     letter-spacing: -0.04em;
     color: var(--text-primary);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 9px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.logo-minimal:hover {
+    opacity: 1;
+}
+
+/* White Tile Housing the Animated Scissors */
+.brand-symbol {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #040407;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.35);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    flex-shrink: 0;
+    position: relative;
+    overflow: visible;
+}
+
+.brand-symbol .scissors-icon {
+    width: 17px;
+    height: 17px;
+    stroke: #040407;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+    display: block;
+}
+
+/* Scissors Blade Pivot System */
+.brand-symbol .blade-top,
+.brand-symbol .blade-bottom {
+    transform-box: view-box;
+    transform-origin: 12px 12px;
+}
+
+.brand-symbol .blade-top {
+    animation: idleSnipTop 4.2s ease-in-out infinite;
+}
+
+.brand-symbol .blade-bottom {
+    animation: idleSnipBottom 4.2s ease-in-out infinite;
+}
+
+.brand-symbol .scissor-spark {
+    opacity: 0;
+    stroke: #10b981;
+}
+
+/* Idle Ready Snip Pulse */
+@keyframes idleSnipTop {
+    0%, 80%, 100% { transform: rotate(0deg); }
+    86% { transform: rotate(18deg); }
+    92% { transform: rotate(0deg); }
+}
+
+@keyframes idleSnipBottom {
+    0%, 80%, 100% { transform: rotate(0deg); }
+    86% { transform: rotate(-18deg); }
+    92% { transform: rotate(0deg); }
+}
+
+/* Crazy Double-Snip Cut on Hover */
+@keyframes crazySnipTop {
+    0% { transform: rotate(0deg); }
+    18% { transform: rotate(34deg); }
+    32% { transform: rotate(4deg); }
+    48% { transform: rotate(36deg); }
+    65% { transform: rotate(2deg); }
+    80% { transform: rotate(18deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes crazySnipBottom {
+    0% { transform: rotate(0deg); }
+    18% { transform: rotate(-34deg); }
+    32% { transform: rotate(-4deg); }
+    48% { transform: rotate(-36deg); }
+    65% { transform: rotate(-2deg); }
+    80% { transform: rotate(-18deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes sparkFlash {
+    0%, 14% { opacity: 0; stroke-dasharray: 0 10; }
+    18%, 28% { opacity: 1; stroke: #10b981; stroke-dasharray: 6 0; }
+    32%, 44% { opacity: 0; }
+    48%, 58% { opacity: 1; stroke: #040407; stroke-dasharray: 6 0; }
+    68%, 100% { opacity: 0; }
+}
+
+.logo-minimal:hover .brand-symbol {
+    transform: scale(1.12) rotate(-8deg);
+    box-shadow: 0 0 32px rgba(255, 255, 255, 0.75);
+}
+
+.logo-minimal:hover .blade-top {
+    animation: crazySnipTop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+
+.logo-minimal:hover .blade-bottom {
+    animation: crazySnipBottom 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+
+.logo-minimal:hover .scissor-spark {
+    animation: sparkFlash 0.6s ease forwards;
+}
+
+/* Brand Text with Old White Dot that brightens on hover */
+.brand-text {
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: -0.04em;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
 }
 
 .logo-minimal .dot {
-    width: 5px;
-    height: 5px;
-    background-color: var(--accent-white);
+    width: 6px;
+    height: 6px;
+    background-color: #ffffff;
     border-radius: 50%;
+    margin-left: 2px;
     margin-top: 5px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-    animation: pulseDot 2.5s infinite;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    animation: pulseDot 2.5s infinite ease-in-out;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.logo-minimal:hover .dot {
+    background-color: #ffffff;
+    box-shadow: 0 0 16px #ffffff, 0 0 32px rgba(255, 255, 255, 1);
+    transform: scale(1.75);
+    filter: drop-shadow(0 0 8px #ffffff);
 }
 
 @keyframes pulseDot {
-    0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 6px rgba(255, 255, 255, 0.8); }
-    50% { transform: scale(1.6); opacity: 0.8; box-shadow: 0 0 14px rgba(255, 255, 255, 1); }
+    0%, 100% { transform: scale(1); opacity: 0.85; box-shadow: 0 0 6px rgba(255, 255, 255, 0.7); }
+    50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 14px rgba(255, 255, 255, 1); }
 }
 
 .nav-links {
@@ -439,13 +574,45 @@ body {
     padding: 0 30px;
     display: inline-flex;
     align-items: center;
-    gap: 30px;
+    gap: 18px;
     color: rgba(255, 255, 255, 0.9);
+    user-select: none;
+    transition: var(--transition);
+}
+
+.marquee-icon {
+    width: clamp(26px, 3.5vw, 40px);
+    height: clamp(26px, 3.5vw, 40px);
+    stroke: currentColor;
+    stroke-width: 2.2;
+    flex-shrink: 0;
+    opacity: 0.88;
 }
 
 .marquee-item.outline {
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.25);
+    color: var(--bg-main);
+    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.32);
+    paint-order: stroke fill;
+    transition: var(--transition);
+}
+
+.marquee-item.outline .marquee-icon {
+    stroke: rgba(255, 255, 255, 0.32);
+    transition: var(--transition);
+}
+
+.marquee-item.outline:hover {
+    color: var(--bg-main);
+    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.85);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+}
+
+.marquee-item.outline:hover .marquee-icon {
+    stroke: rgba(255, 255, 255, 0.85);
+}
+
+.marquee-wrapper:hover .marquee-track {
+    animation-play-state: paused;
 }
 
 .marquee-bullet {
@@ -866,6 +1033,18 @@ body {
     background: var(--bg-main);
 }
 
+.destination-preview-trigger {
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    cursor: pointer;
+}
+
+.destination-preview-trigger:hover {
+    color: #ffffff !important;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.3);
+    text-underline-offset: 3px;
+}
+
 /* --- Interactive Action Buttons in Dashboard --- */
 .btn-action-icon {
     width: 32px;
@@ -974,6 +1153,24 @@ body {
     border: 1px solid var(--border);
 }
 
+.pill-ad-custom {
+    background: rgba(168, 85, 247, 0.14);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.28);
+}
+
+.ad-mode-option {
+    transition: all 0.2s ease;
+}
+
+.ad-mode-option:hover {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.ad-mode-option.selected {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
 .pill-clean {
     background: rgba(16, 185, 129, 0.1);
     color: #10b981;
@@ -1015,18 +1212,24 @@ body {
 
 .transit-halo {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 124px;
+    height: 124px;
     margin: 0 auto 28px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 .transit-svg-ring {
     width: 100%;
     height: 100%;
     transform: rotate(-90deg);
+    overflow: visible;
+    background: transparent;
 }
 
 .transit-count-text {
@@ -1039,22 +1242,231 @@ body {
     font-weight: 800;
     font-family: var(--font-mono);
     color: var(--text-primary);
+    user-select: none;
+    pointer-events: none;
 }
 
-.sponsor-box {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+.pause-notice {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin: -8px auto 16px;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
+    animation: pausePulse 1.8s infinite ease-in-out;
+}
+
+@keyframes pausePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.75; transform: scale(0.98); }
+}
+
+/* --- Ad Transit Box & Showcase --- */
+.ad-transit-box {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: var(--radius-md);
-    padding: 24px;
+    padding: 20px;
     margin: 24px 0;
     text-align: left;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.3s ease;
+    transition: border-color 0.3s ease, background 0.3s ease;
 }
 
-.sponsor-box:hover {
-    border-color: rgba(255, 255, 255, 0.2);
+.ad-transit-box:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.ad-transit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.pill-ad-status {
+    background: rgba(59, 130, 246, 0.12);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-ad-here {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-ad-here:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: var(--accent-emerald);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+/* Custom Ad Styling */
+.custom-ad-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.custom-ad-video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 */
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-ad-video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.custom-ad-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.custom-ad-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.custom-ad-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-visit-custom-ad {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    color: #040407;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-visit-custom-ad:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+}
+
+.custom-ad-domain {
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+/* Network Ad Placeholder */
+.network-ad-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ad-network-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ad-placeholder-graphic {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #a1a1aa;
+}
+
+.ad-headline {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.ad-subtext {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.btn-network-promo {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-network-promo:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: var(--text-primary);
 }
 
 .btn-transit {
@@ -1088,6 +1500,119 @@ body {
     transform: scale(1.03);
     box-shadow: 0 0 35px rgba(255, 255, 255, 0.45);
 }
+
+/* Modal Styling */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-card {
+    width: 100%;
+    max-width: 500px;
+    background: #0f0f14;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: var(--accent-emerald);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pricing-feature-pill {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    margin-bottom: 20px;
+}
+
+.feature-price {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    color: var(--accent-emerald);
+}
+
+.feature-per {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.ad-perks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ad-perk-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.ad-perk-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: rgba(16, 185, 129, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.ad-perk-item strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.ad-perk-item span {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
 
 /* --- QR Studio Shape Selector Cards (2 per row) --- */
 .shape-selector-grid {
