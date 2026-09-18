@@ -95,47 +95,176 @@
                 </div>
             </div>
 
-            <!-- 2. Module Shape (Dots Style) -->
+            <!-- 2. Module Shape (Dots Style) - 2 per row with actual shapes -->
             <div class="bento-cell" style="padding: 28px;">
-                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Module Shape</h3>
-                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the pattern matrix modules</p>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Module Shape</h3>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">2 PER ROW</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the internal QR pattern matrix</p>
                 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                    <button type="button" class="btn-outline shape-btn active" onclick="setShape('square', this)" style="background: rgba(255,255,255,0.12);">
-                        Square (Classic)
+                <div class="shape-selector-grid">
+                    <!-- 1. Square -->
+                    <button type="button" class="shape-card shape-card-shape active" onclick="setShape('square', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <rect x="2" y="2" width="7.5" height="7.5" rx="0"/>
+                                <rect x="12.5" y="2" width="7.5" height="7.5" rx="0"/>
+                                <rect x="2" y="12.5" width="7.5" height="7.5" rx="0"/>
+                                <rect x="12.5" y="12.5" width="7.5" height="7.5" rx="0"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Square (Classic)</div>
+                            <div class="shape-card-sub">Sharp geometric matrix</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline shape-btn" onclick="setShape('dots', this)">
-                        Dots (Circles)
+
+                    <!-- 2. Dots -->
+                    <button type="button" class="shape-card shape-card-shape" onclick="setShape('dots', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <circle cx="5.75" cy="5.75" r="4"/>
+                                <circle cx="16.25" cy="5.75" r="4"/>
+                                <circle cx="5.75" cy="16.25" r="4"/>
+                                <circle cx="16.25" cy="16.25" r="4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Dots (Circles)</div>
+                            <div class="shape-card-sub">Modern circular points</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline shape-btn" onclick="setShape('rounded', this)">
-                        Rounded Squircle
+
+                    <!-- 3. Rounded Squircle -->
+                    <button type="button" class="shape-card shape-card-shape" onclick="setShape('rounded', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <rect x="2" y="2" width="7.5" height="7.5" rx="2.5"/>
+                                <rect x="12.5" y="2" width="7.5" height="7.5" rx="2.5"/>
+                                <rect x="2" y="12.5" width="7.5" height="7.5" rx="2.5"/>
+                                <rect x="12.5" y="12.5" width="7.5" height="7.5" rx="2.5"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Rounded Squircle</div>
+                            <div class="shape-card-sub">Soft curved modules</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline shape-btn" onclick="setShape('classy', this)">
-                        Classy Diamond
+
+                    <!-- 4. Classy Diamond -->
+                    <button type="button" class="shape-card shape-card-shape" onclick="setShape('classy', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <polygon points="5.75,1.5 10,5.75 5.75,10 1.5,5.75"/>
+                                <polygon points="16.25,1.5 20.5,5.75 16.25,10 12,5.75"/>
+                                <polygon points="5.75,12 10,16.25 5.75,20.5 1.5,16.25"/>
+                                <polygon points="16.25,12 20.5,16.25 16.25,20.5 12,16.25"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Classy Diamond</div>
+                            <div class="shape-card-sub">Luxury faceted diamonds</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline shape-btn" onclick="setShape('classy-rounded', this)">
-                        Classy Rounded
+
+                    <!-- 5. Classy Rounded -->
+                    <button type="button" class="shape-card shape-card-shape" onclick="setShape('classy-rounded', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <path d="M2,2 h4 a3.5,3.5 0 0 1 3.5,3.5 v4 h-7.5 Z"/>
+                                <path d="M12.5,2 h7.5 v7.5 h-4 a3.5,3.5 0 0 1 -3.5,-3.5 Z"/>
+                                <path d="M2,12.5 h7.5 v4 a3.5,3.5 0 0 1 -3.5,3.5 h-4 Z"/>
+                                <path d="M12.5,12.5 h4 a3.5,3.5 0 0 1 3.5,3.5 v4 h-7.5 Z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Classy Rounded</div>
+                            <div class="shape-card-sub">Curved organic modules</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline shape-btn" onclick="setShape('extra-rounded', this)">
-                        Pill Smooth
+
+                    <!-- 6. Pill Smooth -->
+                    <button type="button" class="shape-card shape-card-shape" onclick="setShape('extra-rounded', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <rect x="1.5" y="3" width="9" height="5.5" rx="2.75"/>
+                                <rect x="12" y="3" width="9" height="5.5" rx="2.75"/>
+                                <rect x="1.5" y="13.5" width="9" height="5.5" rx="2.75"/>
+                                <rect x="12" y="13.5" width="9" height="5.5" rx="2.75"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Pill Smooth</div>
+                            <div class="shape-card-sub">Elongated pill capsules</div>
+                        </div>
                     </button>
                 </div>
             </div>
 
-            <!-- 3. Corner Eyes Style -->
+            <!-- 3. Corner Eye Markers - 2 per row with actual frame illustrations -->
             <div class="bento-cell" style="padding: 28px;">
-                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Corner Eye Markers</h3>
-                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the orientation anchor frames and center dots</p>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Corner Eye Markers</h3>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">2 PER ROW</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the orientation anchor frames</p>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                    <button type="button" class="btn-outline corner-btn active" onclick="setCorner('square', this)" style="background: rgba(255,255,255,0.12);">
-                        Square Frame
+                <div class="shape-selector-grid">
+                    <!-- 1. Square Frame -->
+                    <button type="button" class="shape-card shape-card-corner active" onclick="setCorner('square', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2.5" y="2.5" width="19" height="19" rx="0"/>
+                                <rect x="7.5" y="7.5" width="9" height="9" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Square Frame</div>
+                            <div class="shape-card-sub">Sharp geometric corners</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline corner-btn" onclick="setCorner('extra-rounded', this)">
-                        Rounded Frame
+
+                    <!-- 2. Rounded Frame -->
+                    <button type="button" class="shape-card shape-card-corner" onclick="setCorner('extra-rounded', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2.5" y="2.5" width="19" height="19" rx="6"/>
+                                <rect x="7.5" y="7.5" width="9" height="9" rx="3" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Rounded Frame</div>
+                            <div class="shape-card-sub">Smooth modern squircle</div>
+                        </div>
                     </button>
-                    <button type="button" class="btn-outline corner-btn" onclick="setCorner('dot', this)">
-                        Circular Frame
+
+                    <!-- 3. Circular Frame -->
+                    <button type="button" class="shape-card shape-card-corner" onclick="setCorner('dot', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9.5"/>
+                                <circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Circular Target</div>
+                            <div class="shape-card-sub">Concentric bullseye rings</div>
+                        </div>
+                    </button>
+
+                    <!-- 4. Soft Rounded Anchor -->
+                    <button type="button" class="shape-card shape-card-corner" onclick="setCorner('extra-rounded', this)">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2.5" y="2.5" width="19" height="19" rx="9"/>
+                                <circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Curved Squircle</div>
+                            <div class="shape-card-sub">Ultra-soft outer anchor</div>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -381,18 +510,18 @@
         window.renderQR();
     };
 
-    // Shape Handlers
+    // Shape Handlers (2 per row visual cards)
     window.setShape = function(shapeType, btn) {
-        document.querySelectorAll('.shape-btn').forEach(b => b.style.background = 'transparent');
-        btn.style.background = 'rgba(255,255,255,0.12)';
+        document.querySelectorAll('.shape-card-shape').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         state.shape = shapeType;
         window.renderQR();
     };
 
-    // Corner Eye Handlers
+    // Corner Eye Handlers (2 per row visual cards)
     window.setCorner = function(cornerType, btn) {
-        document.querySelectorAll('.corner-btn').forEach(b => b.style.background = 'transparent');
-        btn.style.background = 'rgba(255,255,255,0.12)';
+        document.querySelectorAll('.shape-card-corner').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         state.cornerSquare = cornerType;
         state.cornerDot = cornerType === 'extra-rounded' ? 'dot' : cornerType;
         window.renderQR();
