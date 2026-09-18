@@ -25,3 +25,6 @@ Thumbs.db
 
 # Antigravity / Gemini
 .gemini/
+
+# Generated Screenshots
+screenshots/

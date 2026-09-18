@@ -293,6 +293,9 @@ def _shorten_logic(owner_id):
 
     # 3. Fire-and-forget background safety scan
     core.queue_external_check(app, link_id, url)
+    
+    # 4. Background screenshot snapshot
+    core.capture_screenshot(code, url, db.DATA_DIR)
 
     short_url = request.host_url + code
     return jsonify({
@@ -542,6 +545,32 @@ def dashboard_qr(code):
         return redirect(url_for('dashboard'))
     short_url = request.host_url + code
     return render_template('qr.html', link=link, short_url=short_url)
+
+
+# ── Website Previews ────────────────────────────────────────
+
+@app.route('/preview/<code>.jpg')
+def preview_image(code):
+    """Serves the locally saved website snapshot, or a loading placeholder."""
+    from flask import send_file, make_response
+    screenshots_dir = os.path.join(db.DATA_DIR, 'screenshots')
+    filepath = os.path.join(screenshots_dir, f"{code}.jpg")
+    
+    if os.path.exists(filepath):
+        resp = make_response(send_file(filepath, mimetype='image/jpeg'))
+        resp.headers['Cache-Control'] = 'public, max-age=86400'
+        return resp
+    else:
+        # Fallback while generating (must NOT be cached by browser!)
+        svg = f'''<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="#16213e"/>
+            <text x="50%" y="50%" font-family="sans-serif" font-size="24" fill="#a0a3b8" text-anchor="middle" dominant-baseline="middle">Capturing snapshot...</text>
+            <text x="50%" y="54%" font-family="sans-serif" font-size="14" fill="#6b7190" text-anchor="middle" dominant-baseline="middle">Try hovering again in a few seconds.</text>
+        </svg>'''
+        resp = make_response(svg)
+        resp.mimetype = 'image/svg+xml'
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return resp
 
 
 # ── Entry Point ─────────────────────────────────────────────

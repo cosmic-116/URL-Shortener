@@ -3,23 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Snip — URL Shortener{% endblock %}</title>
+    <title>{% block title %}Snip — High-Performance URL Shortener{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
+    <!-- Interactive Background Canvas (Avik Yadav / Three.js particle field) -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <!-- Sleek Precision Cursor Follower (Lag-free) -->
+    <div id="cursor-dot" aria-hidden="true"></div>
+    <div id="cursor-ring" aria-hidden="true"></div>
+
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div style="max-width:1200px; margin:0 auto; padding:16px 40px 0;">
+            <div class="flash-container">
                 {% for category, message in messages %}
                     <div class="flash-msg {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
-                        {{ message }}
+                        <span>{% if category == 'success' %}✓{% else %}!{% endif %}</span>
+                        <span>{{ message }}</span>
                     </div>
                 {% endfor %}
             </div>
         {% endif %}
     {% endwith %}
-    {% block content %}{% endblock %}
+
+    <!-- Page Content (Native scroll with Lenis) -->
+    <main id="main-app">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Core CDN Libraries: Lenis, GSAP, ScrollTrigger -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.39/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <!-- Base Engine Script (Lenis + GSAP Ticker + Particle Canvas + Cursor) -->
+    <script>
+    (function() {
+        // 1. Lenis Smooth Scroll Synchronized with GSAP
+        let lenis;
+        try {
+            lenis = new Lenis({
+                duration: 1.0,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                smoothWheel: true,
+                wheelMultiplier: 1.0,
+                touchMultiplier: 1.2,
+                infinite: false
+            });
+
+            if (window.gsap && window.ScrollTrigger) {
+                gsap.registerPlugin(ScrollTrigger);
+                lenis.on('scroll', ScrollTrigger.update);
+                gsap.ticker.add((time) => {
+                    lenis.raf(time * 1000);
+                });
+                gsap.ticker.lagSmoothing(0);
+            } else {
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+            }
+        } catch (e) {
+            console.warn('Smooth scroll fallback:', e);
+        }
+
+        // 2. High-Performance Interactive Particle Canvas (Zero-lag 60fps)
+        const canvas = document.getElementById('bg-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const particleCount = window.innerWidth < 768 ? 35 : 75;
+            let mouse = { x: -1000, y: -1000, radius: 140 };
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize, { passive: true });
+
+            window.addEventListener('mousemove', (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            }, { passive: true });
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                    this.radius = Math.random() * 1.5 + 0.8;
+                    this.baseAlpha = Math.random() * 0.35 + 0.15;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (this.x < 0) this.x = width;
+                    if (this.x > width) this.x = 0;
+                    if (this.y < 0) this.y = height;
+                    if (this.y > height) this.y = 0;
+
+                    // Mouse gentle repulsion / reaction
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < mouse.radius) {
+                        const force = (mouse.radius - dist) / mouse.radius;
+                        this.x -= (dx / dist) * force * 1.5;
+                        this.y -= (dy / dist) * force * 1.5;
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.baseAlpha})`;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw connections between close particles
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 110) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            const alpha = (1 - dist / 110) * 0.12;
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // 3. Ultra-Smooth Native Lerp Cursor (Hardware Accelerated)
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorRing = document.getElementById('cursor-ring');
+        if (cursorDot && cursorRing && window.matchMedia('(pointer: fine)').matches) {
+            let mouseX = -100, mouseY = -100;
+            let ringX = -100, ringY = -100;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+            }, { passive: true });
+
+            function renderCursor() {
+                ringX += (mouseX - ringX) * 0.18;
+                ringY += (mouseY - ringY) * 0.18;
+                cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+                requestAnimationFrame(renderCursor);
+            }
+            requestAnimationFrame(renderCursor);
+
+            // Delegate hover states efficiently
+            document.addEventListener('mouseover', (e) => {
+                const target = e.target.closest('a, button, input, .interactive-card, .btn-action');
+                if (target) {
+                    if (target.tagName === 'INPUT') {
+                        cursorRing.classList.add('cursor-text');
+                    } else {
+                        cursorRing.classList.add('cursor-hover');
+                    }
+                }
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                const target = e.target.closest('a, button, input, .interactive-card, .btn-action');
+                if (target) {
+                    cursorRing.classList.remove('cursor-hover', 'cursor-text');
+                }
+            });
+        }
+    })();
+    </script>
+
+    {% block page_scripts %}{% endblock %}
 </body>
 </html>

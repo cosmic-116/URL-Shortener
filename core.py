@@ -185,3 +185,41 @@ def queue_external_check(app, link_id, url):
     """Dispatches the external safety check to a background thread."""
     t = threading.Thread(target=_external_check_worker, args=(app, link_id, url))
     t.start()
+
+
+# --- Background Screenshot Capture ---
+
+def _screenshot_worker(code, url, data_dir):
+    """
+    Downloads a screenshot of the website in the background.
+    Uses thum.io with a delay to let the site load fully.
+    """
+    import os
+    import requests
+    import time
+    
+    # We use Microlink API to render a true desktop (1920x1080) layout.
+    # waitFor=4000 gives modern websites/SPAs 4 seconds to animate in.
+    api_url = f"https://api.microlink.io/?url={url}&screenshot=true&meta=false&waitFor=4000"
+    
+    try:
+        r = requests.get(api_url, timeout=20)
+        if r.status_code == 200:
+            data = r.json()
+            screenshot_url = data.get('data', {}).get('screenshot', {}).get('url')
+            
+            if screenshot_url:
+                img_r = requests.get(screenshot_url, timeout=15)
+                if img_r.status_code == 200:
+                    screenshots_dir = os.path.join(data_dir, 'screenshots')
+                    os.makedirs(screenshots_dir, exist_ok=True)
+                    filepath = os.path.join(screenshots_dir, f"{code}.jpg")
+                    with open(filepath, 'wb') as f:
+                        f.write(img_r.content)
+    except Exception as e:
+        print(f"[Screenshot Error] Failed to capture {url}: {e}")
+
+def capture_screenshot(code, url, data_dir):
+    """Spawns a background thread to capture the snapshot."""
+    t = threading.Thread(target=_screenshot_worker, args=(code, url, data_dir))
+    t.start()
