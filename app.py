@@ -212,6 +212,24 @@ def dashboard_delete(code):
     return jsonify({'message': 'Deleted'}), 200
 
 
+@app.route('/dashboard/toggle-ads/<code>', methods=['POST'])
+@login_required
+def dashboard_toggle_ads(code):
+    """Toggle ads monetization on/off for a link."""
+    conn = db.get_db()
+    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    if not link:
+        return jsonify({'error': 'Not found'}), 404
+
+    if link['owner_id'] != session['user_id']:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    new_val = 0 if link['ads_enabled'] else 1
+    conn.execute('UPDATE links SET ads_enabled = ? WHERE code = ?', (new_val, code))
+    conn.commit()
+    return jsonify({'message': 'Updated', 'ads_enabled': bool(new_val)}), 200
+
+
 # ── Shorten Routes ──────────────────────────────────────────
 
 @app.route('/api/shorten', methods=['POST'])
