@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Snip — URL Shortener{% endblock %}
+{% block content %}
+<div style="min-height: 100vh; background: #0f0f1a; position: relative; overflow: hidden;">
+    <!-- Animated blobs -->
+    <div class="blob blob-red" style="width: 600px; height: 600px; top: -100px; left: -150px;"></div>
+    <div class="blob blob-blue" style="width: 500px; height: 500px; top: 100px; right: -100px;"></div>
+    <div class="blob blob-purple" style="width: 400px; height: 400px; bottom: 200px; left: 35%;"></div>
+
+    <!-- Nav -->
+    <nav style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 24px 80px; max-width: 1440px; margin: 0 auto;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{{ url_for('index') }}" style="text-decoration: none; font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: #f0f0f8;">
+                ⚡ <span class="grad-text-rb">Snip</span>
+            </a>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('dashboard') }}" class="btn-ghost" style="padding: 9px 20px; font-size: 14px;">Dashboard</a>
+                <a href="{{ url_for('logout') }}" class="btn-red" style="padding: 9px 20px; font-size: 14px;">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-ghost" style="padding: 9px 20px; font-size: 14px;">Log in</a>
+                <a href="{{ url_for('register') }}" class="btn-red" style="padding: 9px 20px; font-size: 14px;">Get Started</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section style="position: relative; z-index: 10; max-width: 1440px; margin: 0 auto; padding: 80px 80px 0; display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            <span style="display: inline-flex; align-items: center; gap: 8px; background: rgba(233,69,96,0.1); border: 1px solid rgba(233,69,96,0.2); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 500; color: #e94560;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #e94560; display: inline-block;"></span>
+                Now with built-in ad monetization
+            </span>
+        </div>
+
+        <h1 class="fade-up" style="font-size: clamp(48px, 6vw, 88px); font-weight: 900; line-height: 1.05; letter-spacing: -0.04em; text-align: center; max-width: 900px; margin: 0 0 24px; color: #f0f0f8;">
+            Make Every Link <span class="grad-text">Short & Powerful</span>
+        </h1>
+
+        <p class="fade-up-2" style="font-size: 18px; color: #6b7190; text-align: center; max-width: 540px; line-height: 1.7; margin-bottom: 60px;">
+            Shorten, protect, and monetize your URLs. Built-in virus scanning, analytics, and ad revenue — all in one link.
+        </p>
+
+        <!-- Floating badges -->
+        <div style="position: relative; width: 100%; max-width: 800px; margin-bottom: 0; padding-top: 60px;">
+            <div class="badge-float" style="position: absolute; left: 5%; top: 0;">
+                <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(15,15,26,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 13px; font-weight: 500; color: #f0f0f8; white-space: nowrap;">
+                    <span>🛡</span><span>Virus Scan</span>
+                </div>
+            </div>
+            <div class="badge-float-2" style="position: absolute; right: 5%; top: 0;">
+                <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(15,15,26,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 13px; font-weight: 500; color: #f0f0f8; white-space: nowrap;">
+                    <span>💰</span><span>Ad Revenue</span>
+                </div>
+            </div>
+            <div class="badge-float-3" style="position: absolute; left: 25%; top: -10px;">
+                <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(15,15,26,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 13px; font-weight: 500; color: #f0f0f8; white-space: nowrap;">
+                    <span>📊</span><span>Analytics</span>
+                </div>
+            </div>
+            <div class="badge-float-4" style="position: absolute; right: 25%; top: -10px;">
+                <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(15,15,26,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 13px; font-weight: 500; color: #f0f0f8; white-space: nowrap;">
+                    <span>⚡</span><span>Instant</span>
+                </div>
+            </div>
+
+            <!-- Glassmorphism card -->
+            <form id="shortenForm" class="glass fade-up-3" style="border-radius: 20px; padding: 32px; box-shadow: 0 0 80px rgba(233,69,96,0.1), 0 40px 80px rgba(0,0,0,0.4);">
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #6b7190; text-transform: uppercase; display: block; margin-bottom: 8px;">
+                        Destination URL
+                    </label>
+                    <input type="url" id="url" name="url" class="input-field" placeholder="https://your-very-long-url.com/goes/here/..." required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                    <div>
+                        <label style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #6b7190; text-transform: uppercase; display: block; margin-bottom: 8px;">
+                            Custom Alias <span style="color: #3a3d52;">(optional)</span>
+                        </label>
+                        <div style="display: flex; align-items: center;">
+                            <span style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-right: none; border-radius: 10px 0 0 10px; padding: 12px; font-size: 13px; color: #6b7190; white-space: nowrap;">
+                                {{ request.host }}/
+                            </span>
+                            <input type="text" id="alias" name="alias" class="input-field" style="border-radius: 0 10px 10px 0; border-left: none;" placeholder="my-link">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #6b7190; text-transform: uppercase; display: block; margin-bottom: 8px;">
+                            Monetize
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;">
+                            <input type="checkbox" id="ads_enabled" name="ads_enabled" style="display:none;" {% if not session.get('user_id') %}disabled{% endif %}>
+                            <div id="monetizeToggle" class="toggle-track" onclick="toggleMonetize()" style="{% if not session.get('user_id') %}opacity: 0.5; cursor: not-allowed;{% endif %}">
+                                <div class="toggle-thumb"></div>
+                            </div>
+                            <span id="monetizeLabel" style="font-size: 14px; color: #6b7190; transition: color 0.2s;">
+                                {% if session.get('user_id') %}Show ads & earn revenue{% else %}Login to monetize{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="resultBox" style="display:none; margin-bottom:20px; padding:20px; border-radius:12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2);">
+                    <div style="display:flex; gap:20px; align-items:center;">
+                        <div id="qrPreview" style="flex-shrink:0; width:80px; height:80px; border-radius:8px; overflow:hidden; background:#0f0f1a; display:none;">
+                            <img id="qrImg" src="" alt="QR" style="width:100%; height:100%; object-fit:contain;">
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:11px; font-weight:600; color:#22c55e; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Your Short Link</div>
+                            <a id="shortLink" href="#" target="_blank" style="font-size:16px; font-weight:600; color:#f0f0f8; text-decoration:none; word-break:break-all;"></a>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-shrink:0;">
+                            <button type="button" class="btn-ghost" id="copyBtn" onclick="copyLink()" style="padding:6px 12px; font-size:12px;">Copy</button>
+                            <a id="qrPageLink" href="#" class="btn-ghost" style="padding:6px 12px; font-size:12px; text-decoration:none; display:none;">QR Code</a>
+                        </div>
+                    </div>
+                    <div id="flagsArea" style="margin-top:12px; display:none; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size:11px; color:#f59e0b; font-weight:600;">⚠ Heuristic flags: <span id="flagsList" style="color:#a0a3b8; font-weight:400;"></span></div>
+                    </div>
+                </div>
+                
+                <div id="errorBox" style="display:none; margin-bottom:20px; padding:16px; border-radius:10px; background:rgba(233,69,96,0.1); border:1px solid rgba(233,69,96,0.2); color:#e94560; font-size:14px;">
+                </div>
+
+                <button type="submit" id="shortenBtn" class="btn-red" style="width: 100%; font-size: 16px; padding: 15px 28px;">
+                    Shorten URL →
+                </button>
+                <p style="text-align: center; margin-top: 12px; font-size: 12px; color: #3a3d52;">
+                    Free for up to 25 links/month · No credit card required
+                </p>
+            </form>
+        </div>
+    </section>
+</div>
+
+<script>
+    {% if session.get('user_id') %}
+    function toggleMonetize() {
+        const toggle = document.getElementById('monetizeToggle');
+        const checkbox = document.getElementById('ads_enabled');
+        const label = document.getElementById('monetizeLabel');
+        
+        checkbox.checked = !checkbox.checked;
+        if (checkbox.checked) {
+            toggle.classList.add('on');
+            label.style.color = '#f0f0f8';
+            label.innerText = 'Enabled — earn per click';
+        } else {
+            toggle.classList.remove('on');
+            label.style.color = '#6b7190';
+            label.innerText = 'Show ads & earn revenue';
+        }
+    }
+    {% else %}
+    function toggleMonetize() {
+        // Disabled when logged out
+        alert("Please log in to enable monetization.");
+    }
+    {% endif %}
+
+    document.getElementById('shortenForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('shortenBtn');
+        btn.disabled = true;
+        btn.innerText = 'Shortening...';
+
+        const url = document.getElementById('url').value;
+        const alias = document.getElementById('alias').value;
+        const ads_enabled = document.getElementById('ads_enabled').checked;
+
+        try {
+            const res = await fetch('/shorten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, alias, ads_enabled })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                document.getElementById('resultBox').style.display = 'block';
+                document.getElementById('errorBox').style.display = 'none';
+                const linkEl = document.getElementById('shortLink');
+                linkEl.href = data.short_url;
+                linkEl.innerText = data.short_url;
+
+                // Show QR preview
+                const qrPreview = document.getElementById('qrPreview');
+                const qrImg = document.getElementById('qrImg');
+                qrImg.src = '/qr/' + data.code;
+                qrPreview.style.display = 'block';
+
+                // Show QR page link (only if logged in)
+                {% if session.get('user_id') %}
+                const qrPageLink = document.getElementById('qrPageLink');
+                qrPageLink.href = '/dashboard/qr/' + data.code;
+                qrPageLink.style.display = 'inline-block';
+                {% endif %}
+
+                if (data.heuristic_flags && data.heuristic_flags.length > 0) {
+                    document.getElementById('flagsArea').style.display = 'block';
+                    document.getElementById('flagsList').innerText = data.heuristic_flags.join(', ');
+                } else {
+                    document.getElementById('flagsArea').style.display = 'none';
+                }
+            } else {
+                document.getElementById('errorBox').style.display = 'block';
+                document.getElementById('resultBox').style.display = 'none';
+                document.getElementById('errorBox').innerText = data.error;
+            }
+        } catch (err) {
+            document.getElementById('errorBox').style.display = 'block';
+            document.getElementById('errorBox').innerText = 'Network error. Please try again.';
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = 'Shorten URL →';
+    });
+
+    function copyLink() {
+        const url = document.getElementById('shortLink').innerText;
+        navigator.clipboard.writeText(url);
+        const btn = document.getElementById('copyBtn');
+        btn.innerText = 'Copied!';
+        setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
+    }
+</script>
+{% endblock %}

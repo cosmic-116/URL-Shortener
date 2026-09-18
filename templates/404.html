@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}404 — Not Found{% endblock %}
+{% block content %}
+<div style="min-height:100vh; background:#0f0f1a; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; position:relative; overflow:hidden;">
+    <div style="position:absolute; user-select:none; pointer-events:none; font-size:clamp(280px,30vw,380px); font-weight:900; letter-spacing:-0.05em; opacity:0.03; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; line-height:1;">404</div>
+    <div style="font-size:clamp(120px,16vw,200px); font-weight:900; letter-spacing:-0.05em; line-height:1; margin-bottom:20px; filter:drop-shadow(0 0 40px rgba(233,69,96,0.2));" class="grad-text">404</div>
+    <h1 style="font-size:clamp(24px,4vw,36px); font-weight:800; letter-spacing:-0.03em; color:#f0f0f8; margin-bottom:12px;">Link Not Found</h1>
+    <p style="font-size:16px; color:#6b7190; text-align:center; max-width:400px; line-height:1.7; margin-bottom:48px;">This link doesn't exist or was deleted. It may have been removed by its creator.</p>
+    <a href="/" class="btn-red" style="padding:14px 36px; font-size:15px;">← Back to Home</a>
+    <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(233,69,96,0.3), rgba(76,110,245,0.3), transparent);"></div>
+</div>
+{% endblock %}

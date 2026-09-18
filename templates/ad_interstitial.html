@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Redirecting...{% endblock %}
+{% block content %}
+<div style="min-height:100vh; background:radial-gradient(ellipse at 50% 40%, rgba(76,110,245,0.08) 0%, #0f0f1a 60%); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px;">
+    <p style="font-size:13px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; color:#6b7190; margin-bottom:8px;">Sponsored redirect</p>
+    <h1 style="font-size:32px; font-weight:800; letter-spacing:-0.03em; color:#f0f0f8; margin-bottom:8px;">Almost there...</h1>
+    <p style="font-size:15px; color:#6b7190; margin-bottom:56px; text-align:center; max-width:360px;">Please wait while we show a word from our sponsors</p>
+
+    <div style="position:relative; width:160px; height:160px; margin-bottom:48px;">
+        <div id="glow" style="position:absolute; inset:-20px; border-radius:50%; background:radial-gradient(circle, rgba(76,110,245,0.12) 0%, transparent 70%); transition:background 0.5s;"></div>
+        <svg viewBox="0 0 100 100" style="width:100%; height:100%; transform:rotate(-90deg);">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+            <circle id="progress" cx="50" cy="50" r="45" fill="none" stroke="#4c6ef5" stroke-width="6" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="0" style="transition:stroke-dashoffset 0.9s linear, stroke 0.5s ease; filter:drop-shadow(0 0 8px rgba(76,110,245,0.8));"/>
+        </svg>
+        <div id="countNum" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:44px; font-weight:900; letter-spacing:-0.05em; color:#f0f0f8; transition:color 0.3s;">5</div>
+    </div>
+
+    <div style="width:300px; margin-bottom:48px; border:1px dashed rgba(255,255,255,0.1); border-radius:12px; padding:24px; background:rgba(255,255,255,0.02);">
+        <p style="font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#3a3d52; text-align:center; margin-bottom:16px;">📢 Advertisement</p>
+        <div style="height:200px; background:rgba(255,255,255,0.03); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;">
+            <div style="font-size:32px;">🏷️</div>
+            <p style="font-size:13px; color:#3a3d52; text-align:center; line-height:1.5;">Your ad here<br><span style="font-size:11px;">300 × 250 display unit</span></p>
+        </div>
+    </div>
+
+    <a id="continueBtn" href="{{ url_for('continue_ad', token=token) }}" class="btn-red disabled" style="width:340px; max-width:100%; font-size:16px; padding:16px; transition:opacity 0.5s, box-shadow 0.3s;">Continue to Link →</a>
+    <p id="statusText" style="font-size:12px; color:#3a3d52; margin-top:12px;">Button unlocks in 5s</p>
+</div>
+
+<script>
+let timeLeft = 5;
+const CIRC = 283;
+const progress = document.getElementById('progress');
+const countNum = document.getElementById('countNum');
+const glow = document.getElementById('glow');
+const btn = document.getElementById('continueBtn');
+const statusText = document.getElementById('statusText');
+
+const timer = setInterval(() => {
+    timeLeft--;
+    const offset = CIRC - (timeLeft / 5) * CIRC;
+    progress.setAttribute('stroke-dashoffset', offset);
+    countNum.innerText = timeLeft;
+    statusText.innerText = 'Button unlocks in ' + timeLeft + 's';
+    if (timeLeft <= 0) {
+        clearInterval(timer);
+        progress.setAttribute('stroke', '#22c55e');
+        progress.style.filter = 'drop-shadow(0 0 8px rgba(34,197,94,0.8))';
+        countNum.innerText = '✓';
+        countNum.style.fontSize = '36px';
+        countNum.style.color = '#22c55e';
+        glow.style.background = 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)';
+        btn.classList.remove('disabled');
+        btn.style.boxShadow = '0 0 30px rgba(233,69,96,0.5)';
+        statusText.innerText = 'You may now proceed';
+    }
+}, 1000);
+</script>
+{% endblock %}

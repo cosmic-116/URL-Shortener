@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}QR Code — /{{ link.code }}{% endblock %}
+{% block content %}
+<div style="min-height: 100vh; background: #0f0f1a; position: relative;">
+    <!-- Top bar -->
+    <header style="background: rgba(15,15,26,0.9); border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 20;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="{{ url_for('index') }}" style="text-decoration: none; font-size: 18px; font-weight: 800; letter-spacing: -0.03em; color:#f0f0f8;">
+                ⚡ <span class="grad-text-rb">Snip</span>
+            </a>
+            <span style="width: 1px; height: 20px; background: rgba(255,255,255,0.08);"></span>
+            <a href="{{ url_for('dashboard') }}" style="font-size: 13px; color: #6b7190; font-weight: 500; text-decoration: none;">Dashboard</a>
+            <span style="font-size: 13px; color: #3a3d52;">›</span>
+            <span style="font-size: 13px; color: #f0f0f8; font-weight: 500;">QR Code</span>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn-ghost" style="padding: 6px 14px; font-size: 13px; text-decoration:none;">← Back</a>
+    </header>
+
+    <main style="max-width: 900px; margin: 0 auto; padding: 48px 40px 120px;">
+        <!-- Link info -->
+        <div style="margin-bottom: 40px;">
+            <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #f0f0f8; margin-bottom: 8px;">QR Code Manager</h1>
+            <p style="font-size: 15px; color: #6b7190;">
+                For <a href="{{ short_url }}" target="_blank" style="color: #4c6ef5; text-decoration: none; font-weight: 600;">{{ short_url }}</a>
+                → <span style="color: #6b7190;" title="{{ link.original_url }}">{{ link.original_url[:60] }}{% if link.original_url|length > 60 %}...{% endif %}</span>
+            </p>
+        </div>
+
+        <!-- QR Cards -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+            <!-- Basic QR -->
+            <div class="glass" style="border-radius: 16px; padding: 32px; text-align: center;">
+                <p style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #6b7190; text-transform: uppercase; margin-bottom: 20px;">Basic</p>
+                <div style="background: #0f0f1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.06);">
+                    <img src="{{ url_for('qr_basic', code=link.code) }}" alt="Basic QR Code" style="width: 200px; height: 200px; image-rendering: pixelated;">
+                </div>
+                <p style="font-size: 13px; color: #6b7190; margin-bottom: 16px;">Simple themed QR • Red on dark</p>
+                <a href="{{ url_for('qr_basic', code=link.code) }}" download="snip-qr-{{ link.code }}-basic.png" class="btn-ghost" style="padding: 10px 20px; font-size: 13px; text-decoration: none;">
+                    ↓ Download PNG
+                </a>
+            </div>
+
+            <!-- Styled QR -->
+            <div class="glass" style="border-radius: 16px; padding: 32px; text-align: center; border: 1px solid rgba(233,69,96,0.2);">
+                <p style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #e94560; text-transform: uppercase; margin-bottom: 20px;">✨ Creative</p>
+                <div style="background: #0f0f1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(233,69,96,0.15);">
+                    <img src="{{ url_for('qr_styled', code=link.code) }}" alt="Styled QR Code" style="width: 200px; height: 200px;">
+                </div>
+                <p style="font-size: 13px; color: #6b7190; margin-bottom: 16px;">Rounded modules • Red→Blue gradient</p>
+                <a href="{{ url_for('qr_download', code=link.code) }}" class="btn-red" style="padding: 10px 20px; font-size: 13px; text-decoration: none;">
+                    ↓ Download Styled PNG
+                </a>
+            </div>
+        </div>
+
+        <!-- Usage tips -->
+        <div class="glass" style="border-radius: 16px; padding: 28px 32px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(76,110,245,0.15); display: flex; align-items: center; justify-content: center; font-size: 14px;">💡</div>
+                <h2 style="font-size: 15px; font-weight: 700; color: #f0f0f8;">How to use</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+                    <p style="font-size: 13px; color: #a0a3b8; line-height: 1.6;">
+                        <span style="color: #f0f0f8; font-weight: 600;">Embed in HTML</span><br>
+                        <code style="font-size: 12px; color: #4c6ef5;">&lt;img src="{{ short_url | replace(link.code, 'qr/' + link.code + '/styled') }}"&gt;</code>
+                    </p>
+                </div>
+                <div style="padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+                    <p style="font-size: 13px; color: #a0a3b8; line-height: 1.6;">
+                        <span style="color: #f0f0f8; font-weight: 600;">Direct URL</span><br>
+                        <code style="font-size: 12px; color: #4c6ef5;">{{ request.host_url }}qr/{{ link.code }}/styled</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

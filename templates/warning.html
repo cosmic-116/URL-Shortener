@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Warning — Malicious Link{% endblock %}
+{% block content %}
+<div class="red-vignette" style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px;">
+    <div style="position:relative; margin-bottom:24px;">
+        <div style="position:absolute; inset:-20px; border-radius:50%; background:radial-gradient(circle, rgba(233,69,96,0.25) 0%, transparent 70%); animation:blob1 3s ease-in-out infinite;"></div>
+        <div style="width:100px; height:100px; border-radius:50%; background:rgba(233,69,96,0.12); border:2px solid rgba(233,69,96,0.3); display:flex; align-items:center; justify-content:center; font-size:48px; position:relative;">🛑</div>
+    </div>
+    <h1 style="font-size:36px; font-weight:900; letter-spacing:-0.03em; color:#e94560; margin-bottom:12px; text-align:center;">Dangerous Link Detected</h1>
+    <p style="font-size:16px; color:#6b7190; text-align:center; max-width:480px; line-height:1.7; margin-bottom:40px;">This link has been flagged as potentially harmful. Continuing may expose you to malware, phishing attempts, or data theft.</p>
+    <div class="glass" style="border-radius:16px; border:1px solid rgba(233,69,96,0.2); box-shadow:0 0 40px rgba(233,69,96,0.08); padding:28px 32px; width:100%; max-width:480px; margin-bottom:36px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+            <div style="width:28px; height:28px; border-radius:8px; background:rgba(233,69,96,0.15); display:flex; align-items:center; justify-content:center; font-size:14px;">🔍</div>
+            <h2 style="font-size:15px; font-weight:700; color:#f0f0f8;">Safety Report</h2>
+            <span style="margin-left:auto; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e94560; background:rgba(233,69,96,0.1); border:1px solid rgba(233,69,96,0.2); border-radius:4px; padding:2px 8px;">HIGH RISK</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="width:6px; height:6px; border-radius:50%; background:#e94560; flex-shrink:0; margin-top:7px; box-shadow:0 0 8px rgba(233,69,96,0.6);"></span>
+            <span style="font-size:14px; color:#a0a3b8; line-height:1.6;">Destination flagged as unsafe by threat databases</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="width:6px; height:6px; border-radius:50%; background:#e94560; flex-shrink:0; margin-top:7px; box-shadow:0 0 8px rgba(233,69,96,0.6);"></span>
+            <span style="font-size:14px; color:#a0a3b8; line-height:1.6;">May contain malware or phishing content</span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="width:6px; height:6px; border-radius:50%; background:#e94560; flex-shrink:0; margin-top:7px; box-shadow:0 0 8px rgba(233,69,96,0.6);"></span>
+            <span style="font-size:14px; color:#a0a3b8; line-height:1.6;">URL destination hidden to protect your privacy</span>
+        </div>
+        <div style="margin-top:16px; padding:12px 16px; border-radius:8px; background:rgba(233,69,96,0.06); border:1px solid rgba(233,69,96,0.15);">
+            <p style="font-size:12px; color:#6b7190; line-height:1.6;"><span style="color:#e94560; font-weight:600;">Scanned by Snip Shield</span> · Heuristic + external checks</p>
+        </div>
+    </div>
+    <div style="display:flex; gap:12px; width:100%; max-width:480px;">
+        <a href="/" class="btn-red" style="flex:1; font-size:15px; padding:14px;">← Go to Safety</a>
+        <a href="/{{ code }}?confirm=1" class="btn-ghost" style="flex:1; font-size:14px; padding:14px;">Proceed anyway</a>
+    </div>
+    <p style="font-size:12px; color:#3a3d52; margin-top:16px;">Snip is not responsible for content on external sites.</p>
+</div>
+{% endblock %}

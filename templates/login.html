@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Login — Snip{% endblock %}
+{% block content %}
+<div style="min-height: 100vh; display: flex; background: #0f0f1a;">
+    <!-- Left panel -->
+    <div class="auth-left" style="flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px;">
+        <div class="dots-grid" style="position: absolute; inset: 0; opacity: 0.6;"></div>
+        <div style="position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(233,69,96,0.2) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        <div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(76,110,245,0.15) 0%, transparent 70%); bottom: 20%; right: 10%;"></div>
+
+        <div style="position: relative; z-index: 2; text-align: center;">
+            <div style="font-size: 80px; margin-bottom: 16px; filter: drop-shadow(0 0 40px rgba(233,69,96,0.6));">⚡</div>
+            <div style="font-size: 56px; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 16px;">
+                <a href="{{ url_for('index') }}" style="text-decoration:none;"><span class="grad-text-rb">Snip</span></a>
+            </div>
+            <p style="font-size: 18px; color: #6b7190; letter-spacing: 0.02em; font-weight: 400;">
+                Shorten. <span style="color: #e94560;">Protect.</span> Monetize.
+            </p>
+            <div style="margin-top: 48px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 20px; font-size: 14px; color: #a0a3b8;">
+                    <span>🛡</span><span>Virus scanning on every link</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 20px; font-size: 14px; color: #a0a3b8;">
+                    <span>💰</span><span>Earn ad revenue per click</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 20px; font-size: 14px; color: #a0a3b8;">
+                    <span>📊</span><span>Real-time click analytics</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="auth-right" style="width: 520px; display: flex; align-items: center; justify-content: center; padding: 48px; border-left: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.015);">
+        <div style="width: 100%; max-width: 400px;">
+            <!-- Tabs -->
+            <div style="display: flex; margin-bottom: 36px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                <a href="{{ url_for('login') }}" style="flex: 1; padding: 10px; text-align: center; border-radius: 7px; font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; background: rgba(233,69,96,0.2); color: #e94560; box-shadow: 0 0 0 1px rgba(233,69,96,0.3);">Log In</a>
+                <a href="{{ url_for('register') }}" style="flex: 1; padding: 10px; text-align: center; border-radius: 7px; font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; background: transparent; color: #6b7190;">Create Account</a>
+            </div>
+
+            <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; color: #f0f0f8;">Welcome back</h2>
+            <p style="font-size: 14px; color: #6b7190; margin-bottom: 32px;">Log in to manage your links and earnings.</p>
+
+            <form method="POST">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #6b7190; text-transform: uppercase; display: block; margin-bottom: 8px;">Username</label>
+                        <input type="text" name="username" class="auth-input" placeholder="Enter username" required autofocus>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #6b7190; text-transform: uppercase; display: block; margin-bottom: 8px;">Password</label>
+                        <input type="password" name="password" class="auth-input" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                    <a href="#" style="background: none; border: none; color: #6b7190; font-size: 13px; text-decoration:none; font-family: Inter, sans-serif;">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-red" style="width: 100%; margin-top: 28px; font-size: 16px; padding: 15px;">Log In →</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #6b7190;">
+                Don't have an account? 
+                <a href="{{ url_for('register') }}" style="color: #e94560; font-family: Inter, sans-serif; font-weight: 600; text-decoration: none; font-size: 14px;">Register</a>
+            </p>
+
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                <p style="font-size: 12px; color: #3a3d52;">By continuing, you agree to our <span style="color: #6b7190; cursor: pointer;">Terms of Service</span> and <span style="color: #6b7190; cursor: pointer;">Privacy Policy</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
