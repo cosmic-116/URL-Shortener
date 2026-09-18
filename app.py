@@ -496,13 +496,14 @@ def _generate_qr(data, style='basic'):
             image_factory=StyledPilImage,
             module_drawer=RoundedModuleDrawer(),
             color_mask=RadialGradiantColorMask(
-                back_color=(15, 15, 26),       # --bg (#0f0f1a)
-                center_color=(233, 69, 96),    # --red
-                edge_color=(76, 110, 245),     # --blue
+                back_color=(4, 4, 7),
+                center_color=(255, 255, 255),
+                edge_color=(59, 130, 246),
             ),
         )
     else:
-        img = qr.make_image(fill_color='#e94560', back_color='#0f0f1a')
+        # Crisp high-contrast Black on White default
+        img = qr.make_image(fill_color='black', back_color='white')
 
     buf = io.BytesIO()
     img.save(buf, format='PNG')

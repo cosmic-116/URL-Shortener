@@ -1,79 +1,479 @@
 {% extends "base.html" %}
-{% block title %}QR Code — /{{ link.code }}{% endblock %}
+{% block title %}QR Studio — /{{ link.code }}{% endblock %}
 {% block content %}
-<div style="min-height: 100vh; background: transparent; position: relative;">
-    <!-- Top bar -->
-    <header style="background: rgba(15,15,26,0.9); border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 20;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <a href="{{ url_for('index') }}" class="logo-minimal">
-                Snip<div class="dot"></div>
-            </a>
-            <span style="width: 1px; height: 20px; background: rgba(255,255,255,0.08);"></span>
-            <a href="{{ url_for('dashboard') }}" style="font-size: 13px; color: #6b7190; font-weight: 500; text-decoration: none;">Dashboard</a>
-            <span style="font-size: 13px; color: #3a3d52;">›</span>
-            <span style="font-size: 13px; color: #f0f0f8; font-weight: 500;">QR Code</span>
-        </div>
-        <a href="{{ url_for('dashboard') }}" class="btn-outline" style="padding: 6px 14px; font-size: 13px; text-decoration:none;">← Back</a>
-    </header>
 
-    <main style="max-width: 900px; margin: 0 auto; padding: 48px 40px 120px;">
-        <!-- Link info -->
-        <div style="margin-bottom: 40px;">
-            <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #f0f0f8; margin-bottom: 8px;">QR Code Manager</h1>
-            <p style="font-size: 15px; color: #6b7190;">
-                For <a href="{{ short_url }}" target="_blank" style="color: #4c6ef5; text-decoration: none; font-weight: 600;">{{ short_url }}</a>
-                → <span style="color: #6b7190;" title="{{ link.original_url }}">{{ link.original_url[:60] }}{% if link.original_url|length > 60 %}...{% endif %}</span>
+<!-- Floating Navigation Bar -->
+<header class="nav-floating" style="max-width: 1280px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="{{ url_for('index') }}" class="logo-minimal">
+            Snip<div class="dot"></div>
+        </a>
+        <span style="width: 1px; height: 18px; background: var(--border);"></span>
+        <a href="{{ url_for('dashboard') }}" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500;">Console</a>
+        <span style="font-size: 12px; color: var(--text-muted);">›</span>
+        <span style="font-size: 13px; color: var(--text-primary); font-weight: 600;">QR Studio</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="{{ url_for('dashboard') }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px;">← Back to Console</a>
+    </div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 130px 24px 100px;">
+    
+    <!-- Studio Header -->
+    <div style="margin-bottom: 36px;">
+        <div class="status-pill" style="margin-bottom: 12px;">
+            <span class="status-dot"></span>
+            <span>Dynamic Vector & HD QR Generator</span>
+        </div>
+        <h1 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 8px;">
+            QR Studio for <span style="font-family: var(--font-mono); color: #ffffff;">/{{ link.code }}</span>
+        </h1>
+        <p style="font-size: 14px; color: var(--text-secondary);">
+            Pointing to <a href="{{ short_url }}" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: 600;">{{ short_url }}</a>
+            <span style="color: var(--text-muted); margin: 0 6px;">→</span>
+            <span style="color: var(--text-secondary);" title="{{ link.original_url }}">{{ link.original_url[:65] }}{% if link.original_url|length > 65 %}...{% endif %}</span>
+        </p>
+    </div>
+
+    <!-- Two-Column Interactive Studio Layout -->
+    <div style="display: grid; grid-template-columns: 420px 1fr; gap: 32px; align-items: start;">
+        
+        <!-- Left Column: Sticky Live Canvas Preview -->
+        <div class="bento-cell" style="padding: 32px; text-align: center; position: sticky; top: 110px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <span class="bento-tag" style="margin: 0;">Live Render</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px;">HD 1200 DPI</span>
+            </div>
+
+            <!-- The QR Frame Container -->
+            <div id="qrCanvasContainer" style="background: #ffffff; padding: 24px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin-bottom: 24px; min-width: 320px; min-height: 320px; transition: background-color 0.3s ease;">
+                <!-- QR Code is rendered here by JS -->
+            </div>
+
+            <!-- Download Action Suite -->
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="downloadPngBtn" class="btn-primary" style="padding: 14px; font-size: 14px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    <span>Download PNG (HD 1200px)</span>
+                </button>
+                <button id="downloadSvgBtn" class="btn-outline" style="padding: 12px; font-size: 13.5px; justify-content: center;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    <span>Download Vector SVG</span>
+                </button>
+            </div>
+
+            <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 14px;">
+                Scannable on all iOS and Android devices. No expiry.
             </p>
         </div>
 
-        <!-- QR Cards -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
-            <!-- Basic QR -->
-            <div class="bento-card" style="border-radius: 16px; padding: 32px; text-align: center;">
-                <p style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #6b7190; text-transform: uppercase; margin-bottom: 20px;">Basic</p>
-                <div style="background: #0f0f1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.06);">
-                    <img src="{{ url_for('qr_basic', code=link.code) }}" alt="Basic QR Code" style="width: 200px; height: 200px; image-rendering: pixelated;">
+        <!-- Right Column: Interactive Studio Controls -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            
+            <!-- 1. Style Presets -->
+            <div class="bento-cell" style="padding: 28px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Presets</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Quick curated styles for print and digital</p>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <button type="button" class="btn-outline preset-btn active" onclick="applyPreset('bw', this)" style="background: rgba(255,255,255,0.12); font-weight: 700;">
+                        ⚪ Classic B&amp;W (Default)
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('dark', this)">
+                        ⚫ Dark Minimal
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('emerald', this)">
+                        ⚡ Cyber Emerald
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('sunset', this)">
+                        🌅 Neon Sunset
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" onclick="applyPreset('ocean', this)">
+                        🌊 Ocean Blue
+                    </button>
                 </div>
-                <p style="font-size: 13px; color: #6b7190; margin-bottom: 16px;">Simple themed QR • Red on dark</p>
-                <a href="{{ url_for('qr_basic', code=link.code) }}" download="snip-qr-{{ link.code }}-basic.png" class="btn-outline" style="padding: 10px 20px; font-size: 13px; text-decoration: none;">
-                    ↓ Download PNG
-                </a>
             </div>
 
-            <!-- Styled QR -->
-            <div class="bento-card" style="border-radius: 16px; padding: 32px; text-align: center;">
-                <p style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #6b7190; text-transform: uppercase; margin-bottom: 20px;">Creative</p>
-                <div style="background: #0f0f1a; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.06);">
-                    <img src="{{ url_for('qr_styled', code=link.code) }}" alt="Styled QR Code" style="width: 200px; height: 200px;">
+            <!-- 2. Module Shape (Dots Style) -->
+            <div class="bento-cell" style="padding: 28px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Module Shape</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the pattern matrix modules</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <button type="button" class="btn-outline shape-btn active" onclick="setShape('square', this)" style="background: rgba(255,255,255,0.12);">
+                        Square (Classic)
+                    </button>
+                    <button type="button" class="btn-outline shape-btn" onclick="setShape('dots', this)">
+                        Dots (Circles)
+                    </button>
+                    <button type="button" class="btn-outline shape-btn" onclick="setShape('rounded', this)">
+                        Rounded Squircle
+                    </button>
+                    <button type="button" class="btn-outline shape-btn" onclick="setShape('classy', this)">
+                        Classy Diamond
+                    </button>
+                    <button type="button" class="btn-outline shape-btn" onclick="setShape('classy-rounded', this)">
+                        Classy Rounded
+                    </button>
+                    <button type="button" class="btn-outline shape-btn" onclick="setShape('extra-rounded', this)">
+                        Pill Smooth
+                    </button>
                 </div>
-                <p style="font-size: 13px; color: #6b7190; margin-bottom: 16px;">Rounded modules • Gradient</p>
-                <a href="{{ url_for('qr_download', code=link.code) }}" class="btn-outline" style="padding: 10px 20px; font-size: 13px; text-decoration: none;">
-                    ↓ Download Styled PNG
-                </a>
             </div>
+
+            <!-- 3. Corner Eyes Style -->
+            <div class="bento-cell" style="padding: 28px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Corner Eye Markers</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the orientation anchor frames and center dots</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <button type="button" class="btn-outline corner-btn active" onclick="setCorner('square', this)" style="background: rgba(255,255,255,0.12);">
+                        Square Frame
+                    </button>
+                    <button type="button" class="btn-outline corner-btn" onclick="setCorner('extra-rounded', this)">
+                        Rounded Frame
+                    </button>
+                    <button type="button" class="btn-outline corner-btn" onclick="setCorner('dot', this)">
+                        Circular Frame
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. Color & Gradient Customization -->
+            <div class="bento-cell" style="padding: 28px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Colors &amp; Gradients</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Fine-tune foreground pigments and background backdrops</p>
+
+                <!-- Color Mode Selector -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button type="button" class="btn-outline colormode-btn active" onclick="setColorMode('solid', this)" style="background: rgba(255,255,255,0.12);">
+                        Solid Color
+                    </button>
+                    <button type="button" class="btn-outline colormode-btn" onclick="setColorMode('linear', this)">
+                        Linear Gradient
+                    </button>
+                    <button type="button" class="btn-outline colormode-btn" onclick="setColorMode('radial', this)">
+                        Radial Gradient
+                    </button>
+                </div>
+
+                <!-- Pickers Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <!-- Color 1 -->
+                    <div>
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Primary Color</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="color" id="primaryColorPicker" value="#000000" onchange="onColorChange()" style="width: 42px; height: 38px; border: 1px solid var(--border); border-radius: 6px; background: transparent; cursor: pointer;">
+                            <input type="text" id="primaryColorText" value="#000000" oninput="onColorTextChange('primary', this.value)" class="form-input" style="padding: 8px 12px; font-family: var(--font-mono); font-size: 13px;">
+                        </div>
+                    </div>
+
+                    <!-- Color 2 (For Gradient) -->
+                    <div id="gradColorBox" style="opacity: 0.4; pointer-events: none; transition: opacity 0.3s ease;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Gradient Stop Color</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="color" id="secondaryColorPicker" value="#3b82f6" onchange="onColorChange()" style="width: 42px; height: 38px; border: 1px solid var(--border); border-radius: 6px; background: transparent; cursor: pointer;">
+                            <input type="text" id="secondaryColorText" value="#3b82f6" oninput="onColorTextChange('secondary', this.value)" class="form-input" style="padding: 8px 12px; font-family: var(--font-mono); font-size: 13px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Options -->
+                <div>
+                    <label class="form-label" style="font-size: 12px; margin-bottom: 8px;">Background Canvas</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn-outline bg-btn active" onclick="setBgColor('#ffffff', this)" style="background: rgba(255,255,255,0.12);">
+                            Pure White
+                        </button>
+                        <button type="button" class="btn-outline bg-btn" onclick="setBgColor('#040407', this)">
+                            Pitch Dark
+                        </button>
+                        <button type="button" class="btn-outline bg-btn" onclick="setBgColor('transparent', this)">
+                            Transparent
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Developer & Integration Links -->
+            <div class="bento-cell" style="padding: 28px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span>💡</span>
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Developer Integration</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div style="padding: 14px 18px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Direct Image Endpoint</p>
+                        <code style="font-size: 12px; font-family: var(--font-mono); color: #60a5fa; word-break: break-all;">{{ request.host_url }}qr/{{ link.code }}</code>
+                    </div>
+                    <div style="padding: 14px 18px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">HTML Embed Tag</p>
+                        <code style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-emerald); word-break: break-all;">&lt;img src="{{ request.host_url }}qr/{{ link.code }}" width="200"&gt;</code>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Usage tips -->
-        <div class="bento-card" style="border-radius: 16px; padding: 28px 32px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-                <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(76,110,245,0.15); display: flex; align-items: center; justify-content: center; font-size: 14px;">💡</div>
-                <h2 style="font-size: 15px; font-weight: 700; color: #f0f0f8;">How to use</h2>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div style="padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
-                    <p style="font-size: 13px; color: #a0a3b8; line-height: 1.6;">
-                        <span style="color: #f0f0f8; font-weight: 600;">Embed in HTML</span><br>
-                        <code style="font-size: 12px; color: #4c6ef5;">&lt;img src="{{ short_url | replace(link.code, 'qr/' + link.code + '/styled') }}"&gt;</code>
-                    </p>
-                </div>
-                <div style="padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
-                    <p style="font-size: 13px; color: #a0a3b8; line-height: 1.6;">
-                        <span style="color: #f0f0f8; font-weight: 600;">Direct URL</span><br>
-                        <code style="font-size: 12px; color: #4c6ef5;">{{ request.host_url }}qr/{{ link.code }}/styled</code>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </main>
-</div>
+    </div>
+
+</main>
+
+{% endblock %}
+
+{% block page_scripts %}
+<!-- Official QR Code Styling Library (Production CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+<script>
+(function() {
+    const targetUrl = "{{ short_url }}";
+    const code = "{{ link.code }}";
+    const container = document.getElementById("qrCanvasContainer");
+    const downloadPngBtn = document.getElementById("downloadPngBtn");
+    const downloadSvgBtn = document.getElementById("downloadSvgBtn");
+
+    // Studio State (Black and White is DEFAULT as requested)
+    let state = {
+        data: targetUrl,
+        width: 300,
+        height: 300,
+        shape: "square",          // 'dots', 'rounded', 'classy', 'classy-rounded', 'square', 'extra-rounded'
+        cornerSquare: "square",   // 'dot', 'square', 'extra-rounded'
+        cornerDot: "square",      // 'dot', 'square'
+        colorMode: "solid",       // 'solid', 'linear', 'radial'
+        color1: "#000000",
+        color2: "#3b82f6",
+        bgColor: "#ffffff"
+    };
+
+    // Initialize the QR Code Styling Engine
+    const qrCode = new QRCodeStyling({
+        width: state.width,
+        height: state.height,
+        type: "svg",
+        data: state.data,
+        margin: 0,
+        qrOptions: {
+            errorCorrectionLevel: "H"
+        },
+        dotsOptions: {
+            color: state.color1,
+            type: state.shape
+        },
+        backgroundOptions: {
+            color: state.bgColor
+        },
+        cornersSquareOptions: {
+            color: state.color1,
+            type: state.cornerSquare
+        },
+        cornersDotOptions: {
+            color: state.color1,
+            type: state.cornerDot
+        }
+    });
+
+    // Render into preview container
+    qrCode.append(container);
+
+    // Update function
+    window.renderQR = function() {
+        const dotsOpt = {
+            type: state.shape
+        };
+
+        if (state.colorMode === "solid") {
+            dotsOpt.color = state.color1;
+            dotsOpt.gradient = null;
+        } else {
+            dotsOpt.gradient = {
+                type: state.colorMode,
+                rotation: 45,
+                colorStops: [
+                    { offset: 0, color: state.color1 },
+                    { offset: 1, color: state.color2 }
+                ]
+            };
+        }
+
+        const cornersSqOpt = {
+            type: state.cornerSquare,
+            color: state.color1
+        };
+
+        const cornersDotOpt = {
+            type: state.cornerDot,
+            color: state.color1
+        };
+
+        qrCode.update({
+            dotsOptions: dotsOpt,
+            backgroundOptions: {
+                color: state.bgColor
+            },
+            cornersSquareOptions: cornersSqOpt,
+            cornersDotOptions: cornersDotOpt
+        });
+
+        // Update container background to match preview
+        if (container) {
+            container.style.backgroundColor = state.bgColor === 'transparent' ? 'rgba(255,255,255,0.05)' : state.bgColor;
+        }
+    };
+
+    // Preset Handlers
+    window.applyPreset = function(name, btn) {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+        document.querySelectorAll('.preset-btn').forEach(b => b.style.background = 'transparent');
+        btn.style.background = 'rgba(255,255,255,0.12)';
+
+        if (name === 'bw') {
+            // Default Black & White
+            state.shape = 'square';
+            state.cornerSquare = 'square';
+            state.cornerDot = 'square';
+            state.colorMode = 'solid';
+            state.color1 = '#000000';
+            state.color2 = '#000000';
+            state.bgColor = '#ffffff';
+        } else if (name === 'dark') {
+            state.shape = 'square';
+            state.cornerSquare = 'square';
+            state.cornerDot = 'square';
+            state.colorMode = 'solid';
+            state.color1 = '#ffffff';
+            state.bgColor = '#040407';
+        } else if (name === 'emerald') {
+            state.shape = 'rounded';
+            state.cornerSquare = 'extra-rounded';
+            state.cornerDot = 'dot';
+            state.colorMode = 'linear';
+            state.color1 = '#10b981';
+            state.color2 = '#3b82f6';
+            state.bgColor = '#040407';
+        } else if (name === 'sunset') {
+            state.shape = 'dots';
+            state.cornerSquare = 'extra-rounded';
+            state.cornerDot = 'dot';
+            state.colorMode = 'linear';
+            state.color1 = '#ec4899';
+            state.color2 = '#8b5cf6';
+            state.bgColor = '#ffffff';
+        } else if (name === 'ocean') {
+            state.shape = 'classy-rounded';
+            state.cornerSquare = 'extra-rounded';
+            state.cornerDot = 'dot';
+            state.colorMode = 'radial';
+            state.color1 = '#06b6d4';
+            state.color2 = '#3b82f6';
+            state.bgColor = '#040407';
+        }
+
+        // Sync pickers
+        document.getElementById('primaryColorPicker').value = state.color1;
+        document.getElementById('primaryColorText').value = state.color1;
+        document.getElementById('secondaryColorPicker').value = state.color2;
+        document.getElementById('secondaryColorText').value = state.color2;
+        
+        syncUIButtons();
+        window.renderQR();
+    };
+
+    // Shape Handlers
+    window.setShape = function(shapeType, btn) {
+        document.querySelectorAll('.shape-btn').forEach(b => b.style.background = 'transparent');
+        btn.style.background = 'rgba(255,255,255,0.12)';
+        state.shape = shapeType;
+        window.renderQR();
+    };
+
+    // Corner Eye Handlers
+    window.setCorner = function(cornerType, btn) {
+        document.querySelectorAll('.corner-btn').forEach(b => b.style.background = 'transparent');
+        btn.style.background = 'rgba(255,255,255,0.12)';
+        state.cornerSquare = cornerType;
+        state.cornerDot = cornerType === 'extra-rounded' ? 'dot' : cornerType;
+        window.renderQR();
+    };
+
+    // Color Mode Handlers
+    window.setColorMode = function(mode, btn) {
+        document.querySelectorAll('.colormode-btn').forEach(b => b.style.background = 'transparent');
+        btn.style.background = 'rgba(255,255,255,0.12)';
+        state.colorMode = mode;
+        
+        const gradBox = document.getElementById('gradColorBox');
+        if (mode === 'solid') {
+            gradBox.style.opacity = '0.35';
+            gradBox.style.pointerEvents = 'none';
+        } else {
+            gradBox.style.opacity = '1';
+            gradBox.style.pointerEvents = 'auto';
+        }
+        window.renderQR();
+    };
+
+    // Color Pickers
+    window.onColorChange = function() {
+        state.color1 = document.getElementById('primaryColorPicker').value;
+        state.color2 = document.getElementById('secondaryColorPicker').value;
+        document.getElementById('primaryColorText').value = state.color1;
+        document.getElementById('secondaryColorText').value = state.color2;
+        window.renderQR();
+    };
+
+    window.onColorTextChange = function(which, val) {
+        if (val.startsWith('#') && (val.length === 7 || val.length === 4)) {
+            if (which === 'primary') {
+                state.color1 = val;
+                document.getElementById('primaryColorPicker').value = val;
+            } else {
+                state.color2 = val;
+                document.getElementById('secondaryColorPicker').value = val;
+            }
+            window.renderQR();
+        }
+    };
+
+    // Background Handlers
+    window.setBgColor = function(colorVal, btn) {
+        document.querySelectorAll('.bg-btn').forEach(b => b.style.background = 'transparent');
+        btn.style.background = 'rgba(255,255,255,0.12)';
+        state.bgColor = colorVal;
+        window.renderQR();
+    };
+
+    function syncUIButtons() {
+        const gradBox = document.getElementById('gradColorBox');
+        if (state.colorMode === 'solid') {
+            gradBox.style.opacity = '0.35';
+            gradBox.style.pointerEvents = 'none';
+        } else {
+            gradBox.style.opacity = '1';
+            gradBox.style.pointerEvents = 'auto';
+        }
+    }
+
+    // Export Handlers
+    if (downloadPngBtn) {
+        downloadPngBtn.addEventListener("click", () => {
+            qrCode.download({
+                name: `snip-qr-${code}`,
+                extension: "png"
+            });
+        });
+    }
+
+    if (downloadSvgBtn) {
+        downloadSvgBtn.addEventListener("click", () => {
+            qrCode.download({
+                name: `snip-qr-${code}`,
+                extension: "svg"
+            });
+        });
+    }
+})();
+</script>
 {% endblock %}
