@@ -30,7 +30,7 @@ def shorten_web():
         if not conn.execute('SELECT id FROM users WHERE id = ?', (owner_id,)).fetchone():
             session.clear()
             owner_id = None
-    return _shorten_logic(owner_id)
+    return _shorten_logic(owner_id, enforce_guest_quota=True)
 
 @api_bp.route('/api/stats/<code>', methods=['GET'], endpoint='api_stats')
 @require_api_key
