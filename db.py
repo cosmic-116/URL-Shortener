@@ -181,7 +181,8 @@ def upgrade_db(db_conn):
 
                 # Check if old table has data to copy over
                 if "amount" in ledger_cols:
-                    db_conn.execute('''
+                    ip_hash_select = "COALESCE(al.ip_hash, '')" if "ip_hash" in ledger_cols else "''"
+                    db_conn.execute(f'''
                         INSERT INTO ad_ledger_new (id, link_id, owner_id, link_code, amount_micros, ip_hash, timestamp)
                         SELECT 
                             al.id,
@@ -189,7 +190,7 @@ def upgrade_db(db_conn):
                             l.owner_id,
                             l.code,
                             CAST(ROUND(al.amount * 1000000) AS INTEGER),
-                            COALESCE(al.ip_hash, ''),
+                            {ip_hash_select},
                             al.timestamp
                         FROM ad_ledger al
                         LEFT JOIN links l ON l.id = al.link_id;

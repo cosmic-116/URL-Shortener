@@ -91,6 +91,8 @@ def build_short_url(code):
     """Builds the public short URL using BASE_URL if configured, falling back to request.host_url."""
     base = os.environ.get('BASE_URL', '').strip().rstrip('/')
     if base:
+        if not base.startswith(('http://', 'https://')):
+            base = 'https://' + base
         return f"{base}/{code}"
     return request.host_url + code
 
