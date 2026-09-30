@@ -26,20 +26,38 @@ def dashboard():
         page = 1
     per_page = 50
     offset = (page - 1) * per_page
+    q = request.args.get('q', '').strip()
+    sort = request.args.get('sort', 'newest').strip()
 
-    total_links_row = conn.execute('SELECT COUNT(*) AS count FROM links WHERE owner_id = ?', (uid,)).fetchone()
+    params = [uid]
+    where_clause = "WHERE links.owner_id = ?"
+    if q:
+        where_clause += " AND (links.code LIKE ? OR links.original_url LIKE ?)"
+        q_param = f"%{q}%"
+        params.extend([q_param, q_param])
+
+    total_links_row = conn.execute(f'SELECT COUNT(*) AS count FROM links {where_clause}', params).fetchone()
     total_links = total_links_row['count'] if total_links_row else 0
     total_pages = max(1, math.ceil(total_links / per_page))
 
-    links = conn.execute('''
+    order_by = 'ORDER BY links.created_at DESC'
+    if sort == 'clicks':
+        order_by = 'ORDER BY click_count DESC, links.created_at DESC'
+    elif sort == 'oldest':
+        order_by = 'ORDER BY links.created_at ASC'
+
+    query_params = list(params)
+    query_params.extend([per_page, offset])
+
+    links = conn.execute(f'''
         SELECT links.*, COUNT(clicks.id) AS click_count
         FROM links
         LEFT JOIN clicks ON clicks.link_id = links.id
-        WHERE links.owner_id = ?
+        {where_clause}
         GROUP BY links.id
-        ORDER BY links.created_at DESC
+        {order_by}
         LIMIT ? OFFSET ?
-    ''', (uid, per_page, offset)).fetchall()
+    ''', query_params).fetchall()
 
     earnings_data = db.get_earnings(conn, uid)
     
@@ -51,12 +69,24 @@ def dashboard():
     ''', (uid,)).fetchone()
     total_clicks = total_clicks_row['tc'] if total_clicks_row else 0
 
+    daily_clicks = conn.execute('''
+        SELECT strftime('%Y-%m-%d', clicks.timestamp) as day, COUNT(clicks.id) as count
+        FROM clicks
+        JOIN links ON clicks.link_id = links.id
+        WHERE links.owner_id = ? AND clicks.timestamp >= datetime('now', '-7 days')
+        GROUP BY day
+        ORDER BY day ASC
+    ''', (uid,)).fetchall()
+
     return render_template('dashboard.html',
                            links=links,
                            earnings=earnings_data['earnings'],
                            network_earnings=earnings_data['network_earnings'],
                            custom_spend=earnings_data['custom_spend'],
                            total_clicks=total_clicks,
+                           daily_clicks=daily_clicks,
+                           q=q,
+                           sort=sort,
                            page=page,
                            total_pages=total_pages,
                            total_links=total_links)

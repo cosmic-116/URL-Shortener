@@ -15,6 +15,27 @@
     --accent-white: #ffffff;
     --accent-emerald: #10b981;
     --accent-blue: #3b82f6;
+    --accent: var(--accent-emerald);
+    --accent-hover: #059669;
+    --accent-glow: rgba(16, 185, 129, 0.3);
+    
+    /* Spacing tokens */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-8: 48px;
+
+    /* Typography scale tokens */
+    --text-xs: 12px;
+    --text-sm: 14px;
+    --text-base: 16px;
+    --text-lg: 18px;
+    --text-xl: 24px;
+    --text-2xl: 32px;
+
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 22px;
@@ -1857,5 +1878,209 @@ html, body {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
 }
+
+/* --- Reusable Components (Phase 5 & 6) --- */
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transform: translateY(-1px);
+}
+
+/* --- Toast Notification Engine --- */
+.snip-toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 380px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.snip-toast-item {
+    background: rgba(14, 14, 22, 0.95);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    pointer-events: auto;
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.snip-toast-item.toast-success {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(10, 24, 20, 0.95);
+}
+
+.snip-toast-item.toast-success .toast-icon {
+    color: var(--accent-emerald);
+}
+
+.snip-toast-item.toast-error {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(26, 14, 16, 0.95);
+}
+
+.snip-toast-item.toast-error .toast-icon {
+    color: #f87171;
+}
+
+.snip-toast-item.toast-info {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(12, 18, 28, 0.95);
+}
+
+.snip-toast-item.toast-info .toast-icon {
+    color: var(--accent-blue);
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- Accessible Modal Engine --- */
+.snip-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 4, 7, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 99990;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: modalFadeIn 0.25s ease forwards;
+}
+
+.snip-modal-dialog {
+    background: #0d0d14;
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+    max-width: 480px;
+    width: 100%;
+    overflow: hidden;
+    animation: modalZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.snip-modal-header {
+    padding: 24px 24px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+}
+
+.snip-modal-title {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.snip-modal-body {
+    padding: 24px;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.snip-modal-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalZoomIn {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* --- Mobile Stacked Table Cards --- */
+@media (max-width: 768px) {
+    .dashboard-table-responsive {
+        border: none !important;
+        background: transparent !important;
+    }
+    
+    .table-dark-custom thead {
+        display: none;
+    }
+
+    .table-dark-custom, 
+    .table-dark-custom tbody, 
+    .table-dark-custom tr, 
+    .table-dark-custom td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-dark-custom tr {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        margin-bottom: 16px;
+        padding: 16px;
+    }
+
+    .table-dark-custom td {
+        padding: 8px 0;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-dark-custom td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+}
+
 
 

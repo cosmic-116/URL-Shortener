@@ -192,12 +192,19 @@
                 <p style="font-size: 13px; color: var(--text-secondary);">Manage short links, toggle ad monetization, and inspect click telemetry.</p>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <!-- Real-time Filter Input -->
-                <div style="position: relative;">
-                    <input type="text" id="linkFilter" placeholder="Filter links..." class="form-input" style="padding: 8px 14px 8px 32px; font-size: 13px; width: 220px; border-radius: var(--radius-sm);">
-                    <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                </div>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <!-- Server-Side Search & Sort Filter -->
+                <form method="GET" action="/dashboard" style="display: flex; align-items: center; gap: 8px;">
+                    <div style="position: relative;">
+                        <input type="text" name="q" value="{{ q or '' }}" id="linkFilter" placeholder="Search links..." class="form-input" style="padding: 8px 14px 8px 32px; font-size: 13px; width: 190px; border-radius: var(--radius-sm);" aria-label="Search links">
+                        <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </div>
+                    <select name="sort" onchange="this.form.submit()" class="form-input" style="padding: 8px 10px; font-size: 12.5px; width: auto; border-radius: var(--radius-sm); cursor: pointer;" aria-label="Sort links">
+                        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+                        <option value="clicks" {% if sort == 'clicks' %}selected{% endif %}>Most Clicks</option>
+                        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    </select>
+                </form>
 
                 <!-- Create Link Toggle Button -->
                 <button id="toggleCreateDrawerBtn" class="btn-primary" style="padding: 8px 18px; font-size: 13px; border-radius: var(--radius-sm); width: auto;">
@@ -340,10 +347,10 @@
             <span>Showing page {{ page }} of {{ total_pages }} ({{ total_links }} total links)</span>
             <div style="display: flex; gap: 8px;">
                 {% if page > 1 %}
-                    <a href="{{ url_for('dashboard', page=page-1) }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">← Previous</a>
+                    <a href="{{ url_for('dashboard', page=page-1, q=q, sort=sort) }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">← Previous</a>
                 {% endif %}
                 {% if page < total_pages %}
-                    <a href="{{ url_for('dashboard', page=page+1) }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">Next →</a>
+                    <a href="{{ url_for('dashboard', page=page+1, q=q, sort=sort) }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">Next →</a>
                 {% endif %}
             </div>
         </div>
@@ -486,12 +493,13 @@ if (inlineForm) {
             const res = await fetch('/shorten', { method: 'POST', body: formData });
             const data = await res.json();
             if (data.short_url) {
-                location.reload();
+                Snip.toast("Short URL created successfully!", "success");
+                setTimeout(() => { location.reload(); }, 600);
             } else {
-                alert(data.error || 'Failed to shorten URL.');
+                Snip.toast(data.error || 'Failed to shorten URL.', 'error');
             }
         } catch (err) {
-            alert('Network error creating link.');
+            Snip.toast('Network error creating link.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerText = 'Create Short URL';
@@ -505,9 +513,10 @@ async function copyLink(url, btn) {
         await navigator.clipboard.writeText(url);
         const orig = btn.innerHTML;
         btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+        Snip.toast("Copied to clipboard!", "success");
         setTimeout(() => { btn.innerHTML = orig; }, 2000);
     } catch (e) {
-        prompt('Copy this URL:', url);
+        Snip.toast("Copy link manually: " + url, "info");
     }
 }
 
@@ -547,13 +556,14 @@ async function toggleAds(code, checkbox) {
                 pill.className = 'pill pill-ads-off';
                 pill.innerText = 'Off';
             }
+            Snip.toast('Ads status updated successfully.', 'success');
         } else {
             checkbox.checked = !checkbox.checked;
-            alert(data.error || 'Failed to update ads status.');
+            Snip.toast(data.error || 'Failed to update ads status.', 'error');
         }
     } catch (e) {
         checkbox.checked = !checkbox.checked;
-        alert('Network error updating ads status.');
+        Snip.toast('Network error updating ads status.', 'error');
     }
 }
 
@@ -662,11 +672,12 @@ if (adConfigForm) {
                     }
                 }
                 closeAdConfigModal();
+                Snip.toast('Ad campaign settings updated!', 'success');
             } else {
-                alert(data.error || 'Failed to save configuration.');
+                Snip.toast(data.error || 'Failed to save configuration.', 'error');
             }
         } catch (err) {
-            alert('Error updating ad campaign settings.');
+            Snip.toast('Error updating ad campaign settings.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerText = 'Save Settings';
@@ -675,9 +686,15 @@ if (adConfigForm) {
 }
 
 
-// 6. Sleek Delete Functionality
+// 6. Sleek Delete Functionality with Accessible Modal
 async function deleteLink(code, btn) {
-    if (!confirm(`Delete short link /${code}? This will permanently remove its redirect and click history.`)) return;
+    const confirmed = await Snip.confirm({
+        title: "Delete Short Link?",
+        message: `Are you sure you want to delete /${code}? This will permanently remove its redirect and click history.`,
+        confirmText: "Delete Link",
+        danger: true
+    });
+    if (!confirmed) return;
     
     const row = btn.closest('.table-row');
     row.style.opacity = '0.3';
@@ -690,6 +707,7 @@ async function deleteLink(code, btn) {
             headers: { 'X-CSRFToken': csrfToken }
         });
         if (res.ok) {
+            Snip.toast("Link deleted successfully.", "success");
             row.style.transition = 'all 0.3s ease';
             row.style.height = '0px';
             row.style.padding = '0px';
@@ -697,12 +715,12 @@ async function deleteLink(code, btn) {
             setTimeout(() => { row.remove(); }, 350);
         } else {
             const data = await res.json();
-            alert(data.error || 'Failed to delete.');
+            Snip.toast(data.error || 'Failed to delete.', 'error');
             row.style.opacity = '1';
             row.style.pointerEvents = 'auto';
         }
     } catch (e) {
-        alert('Error connecting to server.');
+        Snip.toast('Error connecting to server.', 'error');
         row.style.opacity = '1';
         row.style.pointerEvents = 'auto';
     }

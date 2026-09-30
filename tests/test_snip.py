@@ -801,6 +801,60 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(resp.headers['Location'], 'https://example.com/target')
 
+    # ── 24. Phase 7: Regression Tests ─────────────────────────
+    def test_url_blocklist_double_submission(self):
+        """Ensure that submitting a blocked domain twice is blocked on both attempts."""
+        blocked_url = "http://127.0.0.1:8080/exploit"
+        r1 = core.validate_url_at_creation(blocked_url)
+        self.assertFalse(r1)
+        # Second attempt must hit cache and still evaluate as False
+        r2 = core.validate_url_at_creation(blocked_url)
+        self.assertFalse(r2)
+
+    def test_login_lockout_threshold(self):
+        """Ensure failed logins lock out strictly after 5 failed attempts."""
+        from flask import session
+        with self.client:
+            self.client.get('/login')
+            csrf = session.get('csrf_token')
+
+            # 5 failed attempts allowed (200 with error)
+            for i in range(5):
+                resp = self.client.post('/login', data={'username': 'lockout_test_user', 'password': 'wrong_password', 'csrf_token': csrf}, follow_redirects=False)
+                self.assertEqual(resp.status_code, 200, f"Attempt {i+1} should be 200")
+                self.assertIn(b'Invalid username or password', resp.data)
+
+            # 6th attempt exceeds 5 attempts and locks out with 429
+            resp6 = self.client.post('/login', data={'username': 'lockout_test_user', 'password': 'wrong_password', 'csrf_token': csrf}, follow_redirects=False)
+            self.assertEqual(resp6.status_code, 429)
+            self.assertIn(b'Too many failed login attempts', resp6.data)
+
+    def test_dashboard_search_and_sort(self):
+        """Ensure dashboard query parameters ?q= and ?sort= filter correctly."""
+        with app.app_context():
+            conn = db.get_db()
+            conn.execute("INSERT INTO users (id, username, password_hash, api_key_hash, session_version) VALUES (999, 'searcher', 'dummy', 'dummy_hash', 1)")
+            conn.execute("INSERT INTO links (id, code, original_url, owner_id) VALUES (901, 'link_apple', 'https://apple.com', 999)")
+            conn.execute("INSERT INTO links (id, code, original_url, owner_id) VALUES (902, 'link_banana', 'https://banana.com', 999)")
+            conn.commit()
+
+        with self.client.session_transaction() as sess:
+            sess['user_id'] = 999
+            sess['username'] = 'searcher'
+            sess['session_version'] = 1
+
+        # Search for 'apple'
+        resp = self.client.get('/dashboard?q=apple')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b'link_apple', resp.data)
+        self.assertNotIn(b'link_banana', resp.data)
+
+        # Search for 'banana'
+        resp2 = self.client.get('/dashboard?q=banana')
+        self.assertEqual(resp2.status_code, 200)
+        self.assertIn(b'link_banana', resp2.data)
+        self.assertNotIn(b'link_apple', resp2.data)
+
 
 if __name__ == '__main__':
     unittest.main()

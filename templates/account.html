@@ -196,11 +196,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         box.style.display = "block";
                     }
                     if (pwInput) pwInput.value = '';
+                    Snip.toast("New API key generated successfully!", "success");
                 } else {
-                    alert(data.error || "Failed to regenerate API key.");
+                    Snip.toast(data.error || "Failed to regenerate API key.", "error");
                 }
             } catch (err) {
-                alert("Network error regenerating key.");
+                Snip.toast("Network error regenerating key.", "error");
             }
         });
     }

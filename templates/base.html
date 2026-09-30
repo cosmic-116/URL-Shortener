@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
@@ -199,6 +199,87 @@
                 setTimeout(() => dismissMsg(msg), 3500 + idx * 300);
             });
         }
+
+        // 4. Global Accessible Toast & Modal Dialog Engine (replaces alert() and confirm())
+        window.Snip = {
+            toast(message, type = 'info') {
+                let container = document.getElementById('snip-toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'snip-toast-container';
+                    container.className = 'snip-toast-container';
+                    container.setAttribute('role', 'region');
+                    container.setAttribute('aria-label', 'Alert notifications');
+                    document.body.appendChild(container);
+                }
+                const item = document.createElement('div');
+                item.className = `snip-toast-item toast-${type}`;
+                item.setAttribute('role', type === 'error' ? 'alert' : 'status');
+                
+                let iconSvg = '';
+                if (type === 'success') {
+                    iconSvg = '<svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+                } else if (type === 'error') {
+                    iconSvg = '<svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+                } else {
+                    iconSvg = '<svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="8"/></svg>';
+                }
+                
+                item.innerHTML = `${iconSvg}<span>${message}</span>`;
+                container.appendChild(item);
+                setTimeout(() => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(12px) scale(0.95)';
+                    setTimeout(() => item.remove(), 300);
+                }, 3500);
+            },
+            confirm({ title = 'Confirm Action', message = 'Are you sure?', confirmText = 'Confirm', danger = false }) {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'snip-modal-overlay';
+                    overlay.setAttribute('role', 'dialog');
+                    overlay.setAttribute('aria-modal', 'true');
+                    overlay.setAttribute('aria-labelledby', 'modalTitle');
+
+                    overlay.innerHTML = `
+                        <div class="snip-modal-dialog">
+                            <div class="snip-modal-header">
+                                <h2 id="modalTitle" class="snip-modal-title">${title}</h2>
+                            </div>
+                            <div class="snip-modal-body">
+                                <p>${message}</p>
+                            </div>
+                            <div class="snip-modal-footer">
+                                <button type="button" class="btn-outline" id="modalCancelBtn" style="padding: 8px 16px; font-size: 13px;">Cancel</button>
+                                <button type="button" class="${danger ? 'btn-danger' : 'btn-primary'}" id="modalConfirmBtn" style="padding: 8px 16px; font-size: 13px;">${confirmText}</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    const confirmBtn = overlay.querySelector('#modalConfirmBtn');
+                    const cancelBtn = overlay.querySelector('#modalCancelBtn');
+                    confirmBtn.focus();
+
+                    function cleanup(result) {
+                        document.removeEventListener('keydown', handleKey);
+                        overlay.remove();
+                        resolve(result);
+                    }
+
+                    function handleKey(e) {
+                        if (e.key === 'Escape') cleanup(false);
+                    }
+                    document.addEventListener('keydown', handleKey);
+
+                    confirmBtn.addEventListener('click', () => cleanup(true));
+                    cancelBtn.addEventListener('click', () => cleanup(false));
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) cleanup(false);
+                    });
+                });
+            }
+        };
     })();
     </script>
 
