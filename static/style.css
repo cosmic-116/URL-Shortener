@@ -10,8 +10,8 @@
     --border: rgba(255, 255, 255, 0.08);
     --border-hover: rgba(255, 255, 255, 0.22);
     --text-primary: #f5f5f7;
-    --text-secondary: #888999;
-    --text-muted: #555666;
+    --text-secondary: #9a9bab;
+    --text-muted: #8a8b9c;
     --accent-white: #ffffff;
     --accent-emerald: #10b981;
     --accent-blue: #3b82f6;
@@ -61,6 +61,76 @@ body {
     position: relative;
     z-index: 1;
 }
+
+/* --- Hardware-Accelerated Custom Cursor --- */
+#cursor-dot {
+    position: fixed;
+    top: 0; left: 0;
+    width: 6px; height: 6px;
+    background: #ffffff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99999;
+    margin: -3px 0 0 -3px;
+    will-change: transform;
+    box-shadow: 0 0 8px rgba(255,255,255,0.8);
+}
+
+#cursor-ring {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px; height: 32px;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99998;
+    margin: -16px 0 0 -16px;
+    will-change: transform;
+    transition: width 0.22s cubic-bezier(0.16,1,0.3,1),
+                height 0.22s cubic-bezier(0.16,1,0.3,1),
+                margin 0.22s cubic-bezier(0.16,1,0.3,1),
+                background 0.22s ease,
+                border-color 0.22s ease;
+}
+
+#cursor-ring.cursor-hover {
+    width: 50px; height: 50px;
+    margin: -25px 0 0 -25px;
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.55);
+    backdrop-filter: blur(1px);
+}
+
+#cursor-ring.cursor-text {
+    width: 22px; height: 30px;
+    margin: -15px 0 0 -11px;
+    border-radius: 4px;
+    border-color: rgba(255,255,255,0.5);
+    background: transparent;
+}
+
+/* Hide OS cursor on desktop fine-pointer when custom cursor is active */
+@media (pointer: fine) {
+    body:has(#cursor-dot) { cursor: none !important; }
+    body:has(#cursor-dot) a,
+    body:has(#cursor-dot) button,
+    body:has(#cursor-dot) input,
+    body:has(#cursor-dot) [role="button"] { cursor: none !important; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    #cursor-dot, #cursor-ring { display: none; }
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Focus-visible keyboard navigation ring */
+:focus-visible {
+    outline: 2px solid rgba(255,255,255,0.6);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+:focus:not(:focus-visible) { outline: none; }
 
 
 /* --- Floating Blur Navbar --- */
@@ -638,6 +708,26 @@ body {
     background: rgba(239, 68, 68, 0.1);
     border-color: rgba(239, 68, 68, 0.3);
     color: #f87171;
+}
+
+.flash-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flash-close:hover {
+    opacity: 1;
+    transform: scale(1.15);
 }
 
 /* --- Forms & Buttons for Auth Pages --- */

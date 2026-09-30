@@ -10,6 +10,11 @@ if [ -z "$FLASK_SECRET_KEY" ]; then
     exit 1
 fi
 
+if [ -z "$API_KEY_PEPPER" ]; then
+    echo "FATAL: API_KEY_PEPPER environment variable is not set. Refusing to start." >&2
+    exit 1
+fi
+
 # Fail fast if required email configuration variables are missing for acs or smtp
 MAIL_BACKEND_LOWER=$(echo "${MAIL_BACKEND:-acs}" | tr '[:upper:]' '[:lower:]')
 if [ "$MAIL_BACKEND_LOWER" = "acs" ] || [ "$MAIL_BACKEND_LOWER" = "smtp" ]; then
