@@ -134,12 +134,15 @@ def upgrade_db(db_conn):
                 ("custom_ad_url", "TEXT DEFAULT ''"),
                 ("custom_ad_title", "TEXT DEFAULT ''"),
                 ("custom_ad_desc", "TEXT DEFAULT ''"),
-                ("custom_ad_media_type", "TEXT DEFAULT 'link'")
+                ("custom_ad_media_type", "TEXT DEFAULT 'webpage'")
             ]
             for col_name, col_def in new_cols:
                 if col_name not in existing_cols:
                     db_conn.execute(f"ALTER TABLE links ADD COLUMN {col_name} {col_def};")
                     logger.info("Migrated schema: added column %s to links", col_name)
+
+            # Migrate any legacy 'link' media types to 'webpage'
+            db_conn.execute("UPDATE links SET custom_ad_media_type = 'webpage' WHERE custom_ad_media_type = 'link';")
 
         # 2. Ensure users columns exist (session_version, email, email_normalized, email_verified_at)
         if "users" in existing_tables:

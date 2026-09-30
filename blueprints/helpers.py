@@ -103,9 +103,11 @@ def _clean_ad_config(data):
     custom_ad_url = (data.get('custom_ad_url') or '').strip()
     custom_ad_title = (data.get('custom_ad_title') or '').strip()[:80]
     custom_ad_desc = (data.get('custom_ad_desc') or '').strip()[:200]
-    custom_ad_media_type = data.get('custom_ad_media_type', 'link')
-    if custom_ad_media_type not in ('link', 'video'):
-        custom_ad_media_type = 'link'
+    custom_ad_media_type = data.get('custom_ad_media_type', 'webpage')
+    if custom_ad_media_type == 'video':
+        custom_ad_media_type = 'video'
+    else:
+        custom_ad_media_type = 'webpage'
 
     # Security check: validate custom_ad_url at creation/save time
     if custom_ad_url:
@@ -225,7 +227,7 @@ def _shorten_logic(owner_id):
         custom_ad_url = ''
         custom_ad_title = ''
         custom_ad_desc = ''
-        custom_ad_media_type = 'link'
+        custom_ad_media_type = 'webpage'
 
     cur = conn.cursor()
     link_id = None

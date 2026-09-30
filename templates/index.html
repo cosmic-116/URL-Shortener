@@ -115,12 +115,42 @@
                     </div>
                 </div>
 
-                <!-- Instant QR Preview -->
-                <div id="qrPreviewWrap" style="display: flex; align-items: center; gap: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
-                    <img id="qrPreviewImg" src="" alt="QR Code" width="80" height="80" style="border-radius: 8px; border: 1px solid var(--border); background: #000;">
-                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
-                        <strong style="color: var(--text-primary); display: block;">Instant QR Available</strong>
-                        Scan to access or download custom branded vector codes in the QR studio.
+                <!-- Reactive Instant QR Card -->
+                <div id="qrPreviewWrap" class="qr-preview-card">
+                    <div class="qr-preview-badge">
+                        <span class="status-dot-pulse"></span>
+                        <span>Dynamic Vector QR Ready</span>
+                    </div>
+
+                    <div class="qr-preview-layout">
+                        <!-- Reactive QR Visual Box -->
+                        <div class="qr-interactive-frame" id="qrFrameAction" title="Click to view or save QR code">
+                            <div class="qr-glow-aura"></div>
+                            <img id="qrPreviewImg" src="" alt="Dynamic Vector QR Code" width="112" height="112" class="qr-preview-image">
+                            <div class="qr-corner-accent tl"></div>
+                            <div class="qr-corner-accent tr"></div>
+                            <div class="qr-corner-accent bl"></div>
+                            <div class="qr-corner-accent br"></div>
+                        </div>
+
+                        <!-- Info & Quick Actions -->
+                        <div class="qr-preview-details">
+                            <div class="qr-preview-text">
+                                <h4 class="qr-title">Instant Scan &amp; Vector Asset</h4>
+                                <p class="qr-subtitle">Scan directly from phone screen or download high-DPI assets for sharing.</p>
+                            </div>
+
+                            <div class="qr-preview-actions">
+                                <a id="qrDownloadDirect" href="#" class="btn-qr-action primary" download="snip-qr.png" title="Download QR PNG directly">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    <span>Download PNG</span>
+                                </a>
+                                <a id="qrStudioDirect" href="#" class="btn-qr-action secondary" title="Customize colors, frames &amp; logo in QR Studio">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"/></svg>
+                                    <span>QR Studio</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -357,8 +387,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     shortUrlEl.innerText = data.short_url;
                     visitBtn.href = data.short_url;
                     if (data.code) {
-                        qrBtn.href = '/dashboard/qr/' + data.code;
-                        if (qrImg) qrImg.src = '/qr/' + data.code + '/styled';
+                        const qrStyledUrl = '/qr/' + data.code + '/styled';
+                        const qrDownloadUrl = '/qr/' + data.code + '/download';
+                        const qrStudioUrl = '/dashboard/qr/' + data.code;
+
+                        qrBtn.href = qrStudioUrl;
+                        if (qrImg) qrImg.src = qrStyledUrl;
+                        const dlBtn = document.getElementById('qrDownloadDirect');
+                        if (dlBtn) dlBtn.href = qrDownloadUrl;
+                        const studioDirect = document.getElementById('qrStudioDirect');
+                        if (studioDirect) studioDirect.href = qrStudioUrl;
+                        const qrFrame = document.getElementById('qrFrameAction');
+                        if (qrFrame) {
+                            qrFrame.onclick = () => window.open(qrStyledUrl, '_blank');
+                        }
                     }
 
                     resultBox.style.display = 'block';

@@ -855,6 +855,52 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
         self.assertIn(b'link_banana', resp2.data)
         self.assertNotIn(b'link_apple', resp2.data)
 
+    def test_clean_ad_config_webpage_media_type(self):
+        """Verify _clean_ad_config defaults and normalizes to webpage."""
+        from blueprints.helpers import _clean_ad_config
+
+        # Default without custom_ad_media_type
+        ok, cfg = _clean_ad_config({'ad_type': 'custom', 'custom_ad_url': 'https://example.com'})
+        self.assertTrue(ok)
+        self.assertEqual(cfg['custom_ad_media_type'], 'webpage')
+
+        # Legacy 'link' maps to 'webpage'
+        ok, cfg = _clean_ad_config({'ad_type': 'custom', 'custom_ad_url': 'https://example.com', 'custom_ad_media_type': 'link'})
+        self.assertTrue(ok)
+        self.assertEqual(cfg['custom_ad_media_type'], 'webpage')
+
+        # 'video' remains 'video'
+        ok, cfg = _clean_ad_config({'ad_type': 'custom', 'custom_ad_url': 'https://youtube.com/watch?v=abc', 'custom_ad_media_type': 'video'})
+        self.assertTrue(ok)
+        self.assertEqual(cfg['custom_ad_media_type'], 'video')
+
+    def test_interstitial_webpage_embed_renders_mini_browser(self):
+        """Verify interstitial renders mini-browser window with iframe for webpage ad."""
+        with app.app_context():
+            conn = db.get_db()
+            conn.execute("INSERT INTO users (id, username, password_hash, api_key_hash, session_version) VALUES (888, 'webpage_owner', 'dummy', 'dummy_hash', 1)")
+            # Credit owner earnings so custom ad is active
+            conn.execute("INSERT INTO ad_ledger (owner_id, amount_micros) VALUES (888, 1000000)")
+            conn.execute("""
+                INSERT INTO links (code, original_url, owner_id, ads_enabled, ad_type, custom_ad_url, custom_ad_title, custom_ad_media_type)
+                VALUES ('wpembed', 'https://destination.org', 888, 1, 'custom', 'https://showcase.example.com', 'My Cool App', 'webpage')
+            """)
+            conn.commit()
+
+        resp = self.client.get('/wpembed')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b'mini-browser-window', resp.data)
+        self.assertIn(b'https://showcase.example.com', resp.data)
+        self.assertIn(b'My Cool App', resp.data)
+        self.assertIn(b'iframe', resp.data)
+
+    def test_csp_allows_https_frames(self):
+        """Verify Content-Security-Policy header allows external https frames."""
+        resp = self.client.get('/')
+        self.assertEqual(resp.status_code, 200)
+        csp = resp.headers.get('Content-Security-Policy', '')
+        self.assertIn("frame-src 'self' https: data:", csp)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -263,7 +263,7 @@
                          data-custom-url="{{ (link.custom_ad_url or '') | e }}"
                          data-custom-title="{{ (link.custom_ad_title or '') | e }}"
                          data-custom-desc="{{ (link.custom_ad_desc or '') | e }}"
-                         data-custom-media="{{ (link.custom_ad_media_type or 'link') | e }}">
+                         data-custom-media="{{ (link.custom_ad_media_type or 'webpage') | e }}">
                     
                     <!-- Short URL with 1-click Copy -->
                     <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
@@ -412,16 +412,13 @@
             <!-- Custom Ad Fields (Shown when ad_type === 'custom') -->
             <div id="customAdFields" style="display: none; flex-direction: column; gap: 14px; margin-bottom: 20px; padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
                 <div>
-                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Format</label>
+                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Ad Format</label>
                     <div style="display: flex; gap: 14px;">
                         <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
-                            <input type="radio" name="custom_ad_media_type" value="link" checked class="custom-media-radio"> Link / Banner
+                            <input type="radio" name="custom_ad_media_type" value="webpage" checked class="custom-media-radio"> Website Window (Interactive Embed)
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
                             <input type="radio" name="custom_ad_media_type" value="video" class="custom-media-radio"> YouTube Video
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
-                            <input type="radio" name="custom_ad_media_type" value="webpage" class="custom-media-radio"> Webpage Embed
                         </label>
                     </div>
                 </div>
@@ -432,8 +429,8 @@
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Target URL / Video Link <span style="color: var(--accent); font-weight: 400;">*</span></label>
-                    <input type="url" id="configAdUrl" name="custom_ad_url" placeholder="https://myproduct.com or https://youtu.be/..." class="form-input config-preview-input" style="font-size: 13px; padding: 8px 12px;">
+                    <label id="configAdUrlLabel" style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Website Target URL <span style="color: var(--accent); font-weight: 400;">*</span></label>
+                    <input type="url" id="configAdUrl" name="custom_ad_url" placeholder="https://myproduct.com" class="form-input config-preview-input" style="font-size: 13px; padding: 8px 12px;">
                 </div>
 
                 <div>
@@ -443,15 +440,37 @@
 
                 <!-- Mini Live Preview -->
                 <div style="margin-top: 4px;">
-                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px;">Live Transit Preview</div>
-                    <div id="customAdPreviewBox" style="padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                            <span style="font-size: 10px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.15); padding: 2px 6px; border-radius: 4px;">Sponsored Promotion</span>
-                            <span style="font-size: 10px; color: var(--text-muted);">snip transit</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);">Live Transit Preview</span>
+                        <span id="previewFormatBadge" style="font-size: 9.5px; color: var(--accent-emerald); font-weight: 600;">Interactive Website Window</span>
+                    </div>
+                    <div id="customAdPreviewBox" class="mini-browser-preview-box">
+                        <div class="mini-browser-header">
+                            <div class="window-dots">
+                                <span class="dot-red"></span>
+                                <span class="dot-yellow"></span>
+                                <span class="dot-green"></span>
+                            </div>
+                            <div class="mini-browser-address">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <span id="miniBrowserUrlText">https://example.com</span>
+                            </div>
+                            <div class="mini-browser-actions">
+                                <span style="font-size: 9px; color: var(--text-muted); padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.06);">Mini Window</span>
+                            </div>
                         </div>
-                        <div id="previewTitle" style="font-size: 12.5px; font-weight: 700; color: #fff; margin-bottom: 2px;">Headline Preview</div>
-                        <div id="previewDesc" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">Pitch preview will appear here...</div>
-                        <span style="display: inline-block; font-size: 10.5px; font-weight: 700; background: #fff; color: #000; padding: 4px 10px; border-radius: 6px;">Visit Website</span>
+                        <div class="mini-browser-viewport">
+                            <iframe id="miniBrowserIframe" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"></iframe>
+                            <div id="videoPreviewWrap" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: #000; color: var(--text-secondary); font-size: 12px; gap: 8px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: #ef4444;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                <span>YouTube Video Stream Preview</span>
+                            </div>
+                        </div>
+                        <div class="mini-browser-footer">
+                            <div id="previewTitle" style="font-size: 12.5px; font-weight: 700; color: #fff; margin-bottom: 2px;">Headline Preview</div>
+                            <div id="previewDesc" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">Pitch preview will appear here...</div>
+                            <span style="display: inline-block; font-size: 10.5px; font-weight: 700; background: #fff; color: #000; padding: 3px 8px; border-radius: 5px;">Visit Website ↗</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -576,7 +595,8 @@ function openAdConfigModalFromRow(trigger) {
     const customUrl = row.dataset.customUrl || '';
     const customTitle = row.dataset.customTitle || '';
     const customDesc = row.dataset.customDesc || '';
-    const customMedia = row.dataset.customMedia || 'link';
+    let customMedia = row.dataset.customMedia || 'webpage';
+    if (customMedia === 'link') customMedia = 'webpage';
 
     document.getElementById('configCode').value = code;
     document.getElementById('modalLinkCode').innerText = '/' + code;
@@ -626,10 +646,55 @@ function switchAdMode(mode) {
 function updateCustomPreview() {
     const title = document.getElementById('configAdTitle').value.trim();
     const desc = document.getElementById('configAdDesc').value.trim();
+    const url = document.getElementById('configAdUrl').value.trim();
+    const mediaRadio = document.querySelector('input[name="custom_ad_media_type"]:checked');
+    const mediaType = mediaRadio ? mediaRadio.value : 'webpage';
+
     const pTitle = document.getElementById('previewTitle');
     const pDesc = document.getElementById('previewDesc');
+    const pUrlText = document.getElementById('miniBrowserUrlText');
+    const pIframe = document.getElementById('miniBrowserIframe');
+    const pVideo = document.getElementById('videoPreviewWrap');
+    const pFormatBadge = document.getElementById('previewFormatBadge');
+    const urlLabel = document.getElementById('configAdUrlLabel');
+    const urlInput = document.getElementById('configAdUrl');
+
     if (pTitle) pTitle.innerText = title || 'Headline Preview';
     if (pDesc) pDesc.innerText = desc || 'Pitch preview will appear here...';
+
+    if (mediaType === 'video') {
+        if (pFormatBadge) pFormatBadge.innerText = 'YouTube Video Embed';
+        if (urlLabel) urlLabel.innerHTML = 'YouTube Video URL <span style="color: var(--accent); font-weight: 400;">*</span>';
+        if (urlInput) urlInput.placeholder = 'https://www.youtube.com/watch?v=...';
+        if (pIframe) pIframe.style.display = 'none';
+        if (pVideo) pVideo.style.display = 'flex';
+        if (pUrlText) pUrlText.innerText = url || 'https://youtube.com';
+    } else {
+        if (pFormatBadge) pFormatBadge.innerText = 'Interactive Website Window';
+        if (urlLabel) urlLabel.innerHTML = 'Website Target URL <span style="color: var(--accent); font-weight: 400;">*</span>';
+        if (urlInput) urlInput.placeholder = 'https://myproduct.com';
+        if (pVideo) pVideo.style.display = 'none';
+        if (pIframe) {
+            pIframe.style.display = 'block';
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                if (pIframe.dataset.lastUrl !== url) {
+                    pIframe.dataset.lastUrl = url;
+                    pIframe.src = url;
+                }
+            } else {
+                pIframe.src = 'about:blank';
+                pIframe.dataset.lastUrl = '';
+            }
+        }
+        if (pUrlText) {
+            try {
+                const parsed = new URL(url.startsWith('http') ? url : 'https://' + (url || 'example.com'));
+                pUrlText.innerText = parsed.origin;
+            } catch(e) {
+                pUrlText.innerText = url || 'https://example.com';
+            }
+        }
+    }
 }
 
 const adConfigForm = document.getElementById('adConfigForm');
@@ -655,7 +720,7 @@ if (adConfigForm) {
                     row.dataset.customUrl = data.custom_ad_url || '';
                     row.dataset.customTitle = data.custom_ad_title || '';
                     row.dataset.customDesc = data.custom_ad_desc || '';
-                    row.dataset.customMedia = data.custom_ad_media_type || 'link';
+                    row.dataset.customMedia = data.custom_ad_media_type || 'webpage';
 
                     const pill = document.getElementById('adPill-' + code);
                     const checkbox = row.querySelector('.switch-toggle input[type="checkbox"]');

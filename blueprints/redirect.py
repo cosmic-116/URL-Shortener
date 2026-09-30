@@ -85,8 +85,11 @@ def redirect_link(code):
                 effective_ad_type = 'network'
                 effective_custom_url = ''
 
+        raw_media = link['custom_ad_media_type'] if 'custom_ad_media_type' in link.keys() else 'webpage'
+        media_type = 'video' if raw_media == 'video' else 'webpage'
+
         safe_embed = None
-        if link['custom_ad_media_type'] == 'video' and effective_custom_url:
+        if media_type == 'video' and effective_custom_url:
             safe_embed = core.extract_youtube_embed(effective_custom_url)
 
         nonce = secrets.token_urlsafe(16)
@@ -106,6 +109,7 @@ def redirect_link(code):
             'ad_interstitial.html',
             token=token,
             link=link,
+            media_type=media_type,
             safe_embed=safe_embed,
             effective_ad_type=effective_ad_type,
             effective_custom_url=effective_custom_url

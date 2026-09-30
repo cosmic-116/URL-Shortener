@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS links (
     custom_ad_url TEXT DEFAULT '',
     custom_ad_title TEXT DEFAULT '',
     custom_ad_desc TEXT DEFAULT '',
-    custom_ad_media_type TEXT DEFAULT 'link', -- 'link', 'video', 'webpage'
+    custom_ad_media_type TEXT DEFAULT 'webpage', -- 'webpage', 'video'
     safety_status TEXT DEFAULT 'pending', -- 'pending', 'clean', 'malicious', 'unchecked'
     safety_checked_at TIMESTAMP,
     FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE

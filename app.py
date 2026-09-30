@@ -141,7 +141,7 @@ def add_security_headers(response):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: https: blob:; "
-        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
+        "frame-src 'self' https: data: https://www.youtube.com https://www.youtube-nocookie.com; "
         "connect-src 'self'; "
         "object-src 'none'; "
         "base-uri 'self'; "
