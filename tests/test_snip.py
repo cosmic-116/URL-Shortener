@@ -429,12 +429,22 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
             self.assertEqual(qr_basic.status_code, 200)
             self.assertEqual(qr_basic.content_type, 'image/png')
 
-            # Styled QR
+            # Styled QR is account-only.
+            guest_styled = c.get(f'/qr/{code}/styled', follow_redirects=False)
+            self.assertEqual(guest_styled.status_code, 302)
+            self.assertIn('/login', guest_styled.location)
+
+            # Downloading the styled QR is also account-only.
+            guest_download = c.get(f'/qr/{code}/download', follow_redirects=False)
+            self.assertEqual(guest_download.status_code, 302)
+            self.assertIn('/login', guest_download.location)
+
+            # Signed-in users retain styled QR access.
+            self._register_and_login(c, 'qr_user', 'StrongPassword1')
             qr_styled = c.get(f'/qr/{code}/styled')
             self.assertEqual(qr_styled.status_code, 200)
             self.assertEqual(qr_styled.content_type, 'image/png')
 
-            # Download QR
             qr_dl = c.get(f'/qr/{code}/download')
             self.assertEqual(qr_dl.status_code, 200)
             self.assertIn('attachment', qr_dl.headers.get('Content-Disposition', ''))
