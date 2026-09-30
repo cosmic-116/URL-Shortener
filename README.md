@@ -50,7 +50,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# 4. Run automated test suite (55 tests)
+# 4. Run automated test suite (67 tests)
 python -m unittest discover -s tests -v
 
 # 5. Run security audit
@@ -90,7 +90,6 @@ Configure the application using environment variables:
 | `MAIL_MAX_PER_MINUTE` | No | `25` | Global outbound email rate limit per minute. |
 | `MAIL_MAX_PER_HOUR` | No | `90` | Global outbound email rate limit per hour. |
 | `MAIL_MAX_PER_DAY` | No | `250` | Global outbound email rate limit per day. |
-| `REQUIRE_VERIFIED_EMAIL_FOR_API` | No | `1` | Enforce email verification for API key operations. |
 
 ---
 
@@ -167,4 +166,4 @@ curl http://127.0.0.1:5000/api/analytics?limit=10 \
    ```bash
    bash startup.sh
    ```
-4. Pushing to `main` automatically runs `pip-audit`, executes the 55-test suite, and deploys to App Service.
+4. Pushing to `main` automatically runs `pip-audit`, executes the 67-test suite, and deploys to App Service.
