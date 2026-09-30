@@ -166,6 +166,24 @@ def require_api_key(f):
 
 def _shorten_logic(owner_id):
     ip = request.remote_addr or 'unknown'
+
+    # Anonymous homepage shortening is intentionally supported, but guests get
+    # a separate rolling allowance. Authenticated users keep the existing
+    # per-minute abuse limiter and are not affected by this guest quota.
+    if owner_id is None:
+        guest_key = f"guest_shorten:{get_ip_hash(ip)}"
+        if core.is_rate_limited(
+            guest_key,
+            max_requests=5,
+            window_seconds=7200
+        ):
+            return jsonify({
+                'error': 'Guest shortening limit reached. Create a free account to continue.',
+                'guest_limit_reached': True,
+                'login_url': url_for('login'),
+                'register_url': url_for('register')
+            }), 429
+
     if core.is_rate_limited(ip):
         return jsonify({'error': 'Rate limit exceeded. Please wait a minute before creating more links.'}), 429
 
