@@ -164,7 +164,7 @@ def require_api_key(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def _shorten_logic(owner_id):
+def _shorten_logic(owner_id, enforce_guest_quota=False):
     ip = request.remote_addr or 'unknown'
     if core.is_rate_limited(ip):
         return jsonify({'error': 'Rate limit exceeded. Please wait a minute before creating more links.'}), 429
@@ -228,6 +228,23 @@ def _shorten_logic(owner_id):
         custom_ad_title = ''
         custom_ad_desc = ''
         custom_ad_media_type = 'webpage'
+
+    # Anonymous homepage shortening is intentionally supported, but guests
+    # receive a separate rolling allowance. Only validated shortening
+    # requests consume this allowance.
+    if enforce_guest_quota and owner_id is None:
+        guest_key = f"guest_shorten:{get_ip_hash(ip)}"
+        if core.is_rate_limited(
+            guest_key,
+            max_requests=5,
+            window_seconds=7200
+        ):
+            return jsonify({
+                'error': 'Guest shortening limit reached. Create a free account to continue.',
+                'guest_limit_reached': True,
+                'login_url': url_for('login'),
+                'register_url': url_for('register')
+            }), 429
 
     cur = conn.cursor()
     link_id = None
