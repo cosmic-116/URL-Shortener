@@ -10,7 +10,7 @@ from qrcode.image.styles.colormasks import RadialGradiantColorMask
 
 import db
 import core
-from blueprints.helpers import build_short_url
+from blueprints.helpers import build_short_url, login_required
 
 qr_bp = Blueprint('qr', __name__)
 
@@ -95,11 +95,13 @@ def qr_basic(code):
     return _serve_qr_helper(code, style='basic', as_download=False)
 
 @qr_bp.route('/qr/<code>/styled', endpoint='qr_styled')
+@login_required
 def qr_styled(code):
     """Serve a styled QR code with gradient."""
     return _serve_qr_helper(code, style='styled', as_download=False)
 
 @qr_bp.route('/qr/<code>/download', endpoint='qr_download')
+@login_required
 def qr_download(code):
     """Download styled QR code as PNG file."""
     return _serve_qr_helper(code, style='styled', as_download=True)
