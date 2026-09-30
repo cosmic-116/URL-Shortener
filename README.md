@@ -90,7 +90,6 @@ Configure the application using environment variables:
 | `MAIL_MAX_PER_MINUTE` | No | `25` | Global outbound email rate limit per minute. |
 | `MAIL_MAX_PER_HOUR` | No | `90` | Global outbound email rate limit per hour. |
 | `MAIL_MAX_PER_DAY` | No | `250` | Global outbound email rate limit per day. |
-| `REQUIRE_VERIFIED_EMAIL_FOR_API` | No | `1` | Enforce email verification for API key operations. |
 
 ---
 
