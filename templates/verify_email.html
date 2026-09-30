@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Verify Email — Snip{% endblock %}
+{% block content %}
+
+<header class="nav-floating">
+    <a href="/" class="logo-minimal">
+        <div class="brand-symbol">
+            <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <g class="blade-top">
+                    <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                    <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                </g>
+                <g class="blade-bottom">
+                    <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                    <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                </g>
+                <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <span class="brand-text">Snip</span><span class="dot"></span>
+    </a>
+    <div class="nav-links">
+        <a href="/login" class="nav-cta">Log In</a>
+    </div>
+</header>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--accent-emerald);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+            </div>
+            <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 6px;">Check Your Inbox.</h1>
+            <p style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.5;">
+                We sent a 6-digit verification code to<br>
+                <strong style="color: var(--text-primary); font-family: var(--font-mono);">{{ email }}</strong>
+            </p>
+        </div>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: center;">
+                <label class="form-label" style="text-align: center; margin-bottom: 12px;">Enter 6-Digit Code</label>
+                <input type="text" 
+                       name="code" 
+                       class="form-input" 
+                       inputmode="numeric" 
+                       pattern="[0-9]{6}" 
+                       maxlength="6" 
+                       placeholder="••••••" 
+                       autocomplete="one-time-code" 
+                       autofocus 
+                       required 
+                       style="text-align: center; font-size: 28px; letter-spacing: 0.35em; font-family: var(--font-mono); padding: 12px 16px;">
+            </div>
+            
+            <button type="submit" class="btn-primary" style="margin-top: 16px;">
+                <span>Verify &amp; Continue</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
+            <form action="{{ resend_url or '/register/resend' }}" method="POST" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-outline" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm);">
+                    Resend Code
+                </button>
+            </form>
+            <a href="{{ cancel_url or '/register' }}" style="color: var(--text-muted); text-decoration: none;">Use different email</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

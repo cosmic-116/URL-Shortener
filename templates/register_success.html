@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Account Created — Snip API Key{% endblock %}
+{% block content %}
+
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 24px;">
+    <div class="bento-cell" style="max-width: 520px; width: 100%; padding: 40px; text-align: center;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--accent-emerald);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <h1 style="font-size: 26px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); margin-bottom: 8px;">
+            Welcome, {{ username }}!
+        </h1>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.6;">
+            Your account is ready. Below is your personal API key. Save it securely now — for your security, it will never be displayed in plaintext again.
+        </p>
+
+        <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 24px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 700;">Secret API Key</span>
+                <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 600;">Single Display</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <code id="apiKeyDisplay" style="font-family: var(--font-mono); font-size: 13.5px; color: #ffffff; word-break: break-all; flex: 1;">{{ api_key }}</code>
+                <button type="button" id="copyKeyBtn" class="btn-outline" style="padding: 8px 12px; font-size: 12px; flex-shrink: 0;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span id="copyBtnText">Copy</span>
+                </button>
+            </div>
+        </div>
+
+        <a href="{{ url_for('dashboard') }}" class="btn-primary" style="width: 100%; justify-content: center; text-decoration: none; padding: 14px; font-size: 14px;">
+            <span>Continue to Dashboard</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+function copyApiKey() {
+    const key = document.getElementById('apiKeyDisplay').innerText.trim();
+    navigator.clipboard.writeText(key).then(() => {
+        const text = document.getElementById('copyBtnText');
+        text.innerText = 'Copied!';
+        setTimeout(() => { text.innerText = 'Copy'; }, 2000);
+    });
+}
+document.getElementById('copyKeyBtn')?.addEventListener('click', copyApiKey);
+</script>
+
+{% endblock %}
