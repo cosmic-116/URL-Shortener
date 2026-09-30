@@ -33,6 +33,13 @@ fi
 export DATA_DIR="${DATA_DIR:-/home/data}"
 mkdir -p "$DATA_DIR"
 
+# Optional database reset trigger
+RESET_DB_LOWER=$(echo "${RESET_DB:-false}" | tr '[:upper:]' '[:lower:]')
+if [ "$RESET_DB_LOWER" = "true" ] || [ "$RESET_DB_LOWER" = "1" ] || [ "$RESET_DB_LOWER" = "yes" ]; then
+    echo "RESET_DB flag detected: wiping existing database in $DATA_DIR..."
+    rm -f "$DATA_DIR/database.db" "$DATA_DIR/database.db-wal" "$DATA_DIR/database.db-shm"
+fi
+
 # Initialize database schema (idempotent)
 echo "Initializing database at $DATA_DIR/database.db ..."
 python -c "import app; app.db.init_db(app.app); print('Database ready.')"

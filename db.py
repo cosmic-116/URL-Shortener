@@ -274,35 +274,48 @@ def upgrade_db(db_conn):
         db_conn.rollback()
         raise
 
-def init_db(app):
+def init_db(app=None):
     """
     Initializes database schema, configures journal mode, and runs migrations.
+    If RESET_DB=true is set in environment, existing database files are purged first.
     """
-    with app.app_context():
-        journal_mode = os.environ.get('DB_JOURNAL_MODE', 'WAL').upper()
-        if journal_mode not in ('WAL', 'DELETE', 'TRUNCATE', 'MEMORY'):
-            journal_mode = 'WAL'
+    # Check for RESET_DB environment variable trigger
+    if os.environ.get('RESET_DB', '').lower() in ('1', 'true', 'yes'):
+        logger.warning("RESET_DB requested: deleting existing database files at %s...", DATABASE)
+        for ext in ('', '-wal', '-shm'):
+            target = f"{DATABASE}{ext}"
+            if os.path.exists(target):
+                try:
+                    os.remove(target)
+                    logger.info("Deleted database file: %s", target)
+                except Exception as e:
+                    logger.warning("Could not delete %s: %s", target, e)
 
-        # Warn if WAL mode is used on Azure /home network-mounted filesystem
-        if DATA_DIR.startswith('/home') and journal_mode == 'WAL':
-            logger.warning(
-                "DATA_DIR (%s) is on Azure /home network storage. SQLite WAL mode on network shares "
-                "carries risk of lock contention. Consider setting DB_JOURNAL_MODE=DELETE or migrating "
-                "to managed PostgreSQL.", DATA_DIR
-            )
+    journal_mode = os.environ.get('DB_JOURNAL_MODE', 'WAL').upper()
+    if journal_mode not in ('WAL', 'DELETE', 'TRUNCATE', 'MEMORY'):
+        journal_mode = 'WAL'
 
-        conn = sqlite3.connect(DATABASE, timeout=DB_TIMEOUT)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON;")
-        conn.execute(f"PRAGMA journal_mode = {journal_mode};")
+    # Warn if WAL mode is used on Azure /home network-mounted filesystem
+    if DATA_DIR.startswith('/home') and journal_mode == 'WAL':
+        logger.warning(
+            "DATA_DIR (%s) is on Azure /home network storage. SQLite WAL mode on network shares "
+            "carries risk of lock contention. Consider setting DB_JOURNAL_MODE=DELETE or migrating "
+            "to managed PostgreSQL.", DATA_DIR
+        )
 
-        # 1. Run migrations first on any existing legacy tables
-        upgrade_db(conn)
+    conn = sqlite3.connect(DATABASE, timeout=DB_TIMEOUT)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute(f"PRAGMA journal_mode = {journal_mode};")
 
-        # 2. Run schema.sql to ensure all base tables and indexes exist
-        with open(os.path.join(BASE_DIR, 'schema.sql'), 'r') as f:
-            conn.executescript(f.read())
+    # 1. Run migrations first on any existing legacy tables
+    upgrade_db(conn)
 
-        # 3. Finalize any indexes or post-schema migration adjustments
-        upgrade_db(conn)
-        conn.close()
+    # 2. Run schema.sql to ensure all base tables and indexes exist
+    with open(os.path.join(BASE_DIR, 'schema.sql'), 'r') as f:
+        conn.executescript(f.read())
+
+    # 3. Finalize any indexes or post-schema migration adjustments
+    upgrade_db(conn)
+    conn.close()
+
