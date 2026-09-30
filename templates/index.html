@@ -40,14 +40,10 @@
 <section class="hero-section">
     <div class="hero-container">
         
-        <h1 class="hero-heading" style="margin-bottom: 32px;">
+        <h1 class="hero-heading">
             <span class="text-gradient">Shorten Links.</span><br>
             <span>Amplify Reach.</span>
         </h1>
-
-        <p class="hero-subtext">
-            Shorten URLs, generate dynamic vector QR codes, prevent phishing with automated heuristics, and analyze click telemetry in real-time.
-        </p>
 
         <!-- Main Shorten Input Box -->
         <div class="border-beam-box">
@@ -65,7 +61,7 @@
                 </button>
 
                 <!-- Advanced Options Toggle -->
-                <div style="width: 100%; display: flex; justify-content: flex-start; margin-top: 4px;">
+                <div style="width: 100%; display: flex; justify-content: center; margin-top: 6px;">
                     <button type="button" id="advToggleBtn" style="background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 2px 0;">
                         <span>⚙ Advanced Settings (Custom Alias, Expiry)</span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -84,7 +80,7 @@
         </div>
 
         <!-- Result Box (Hidden until shortened) -->
-        <div id="result-box" style="display: none; margin-top: 24px;">
+        <div id="result-box" style="display: none; margin: 24px auto 0; width: 100%; max-width: 780px;">
             <div class="result-card-modern" style="display: flex; flex-direction: column; gap: 18px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                     <div style="text-align: left;">
@@ -241,12 +237,7 @@
 </section>
 
 <!-- Interactive Bento Grid Showcase (Aceternity UI Style) -->
-<section class="section-container" style="margin-top: 40px;">
-    <div class="section-header">
-        <h2 class="section-title">Engineered For Scale.</h2>
-        <p class="section-desc">Every URL shortened on Snip is guarded by heuristic threat inspection, SSRF exploit prevention, and real-time click telemetry.</p>
-    </div>
-
+<section class="section-container" style="margin-top: 20px; margin-bottom: 80px;">
     <div class="bento-grid">
         <!-- Card 1: Threat Intelligence Radar (Span 8) -->
         <div class="bento-cell bento-span-8">
