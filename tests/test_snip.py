@@ -331,7 +331,7 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
     def test_robots_txt_endpoint(self):
         resp = self.client.get('/robots.txt')
         self.assertEqual(resp.status_code, 200)
-        self.assertIn(b'Disallow: /*/', resp.data)
+        self.assertIn(b'Disallow: /qr/', resp.data)
 
     def test_security_headers_present(self):
         resp = self.client.get('/')
@@ -586,7 +586,13 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
         self.assertFalse(os.path.exists(screenshot_path))
 
     def test_api_shorten_invalid_expiry(self):
-        plain_key = self.setup_api_user('expiryuser')
+        plain_key, hashed_key = core.generate_api_key()
+        with app.app_context():
+            conn = db.get_db()
+            conn.execute('INSERT INTO users (username, password_hash, api_key_hash) VALUES (?, ?, ?)',
+                         ('expiryuser', 'dummy', hashed_key))
+            conn.commit()
+            
         # Test NaN
         resp = self.client.post('/api/shorten', headers={'X-API-Key': plain_key}, json={'url': 'https://example.com', 'expires_in': float('nan')})
         self.assertEqual(resp.status_code, 400)
