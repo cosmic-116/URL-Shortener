@@ -709,6 +709,47 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
             last_resp = self.client.get(f'/qr/{code}', environ_overrides={'REMOTE_ADDR': '198.51.100.2'})
         self.assertEqual(last_resp.status_code, 429)
 
+    def test_guest_web_shortening_has_separate_rolling_quota(self):
+        with self.client as c:
+            from flask import session
+            c.get('/')
+            csrf = session.get('csrf_token')
+            self.assertIsNotNone(csrf)
+
+            guest_ip = '198.51.100.50'
+            for _ in range(5):
+                resp = c.post(
+                    '/shorten',
+                    data={'url': 'https://github.com', 'csrf_token': csrf},
+                    environ_overrides={'REMOTE_ADDR': guest_ip}
+                )
+                self.assertEqual(resp.status_code, 200)
+
+            # Sixth anonymous homepage shorten is blocked for the rolling window.
+            resp = c.post(
+                '/shorten',
+                data={'url': 'https://github.com', 'csrf_token': csrf},
+                environ_overrides={'REMOTE_ADDR': guest_ip}
+            )
+            self.assertEqual(resp.status_code, 429)
+            data = resp.get_json()
+            self.assertTrue(data.get('guest_limit_reached'))
+            self.assertIn('/register', data.get('register_url', ''))
+
+    def test_guest_can_download_basic_qr(self):
+        resp = self.client.post('/api/shorten', json={'url': 'https://github.com'})
+        self.assertEqual(resp.status_code, 200)
+        code = resp.get_json()['code']
+
+        qr_resp = self.client.get(
+            f'/qr/{code}/download-basic',
+            environ_overrides={'REMOTE_ADDR': '198.51.100.51'}
+        )
+        self.assertEqual(qr_resp.status_code, 200)
+        self.assertEqual(qr_resp.mimetype, 'image/png')
+        self.assertIn('attachment;', qr_resp.headers.get('Content-Disposition', ''))
+        self.assertIn(f'snip-qr-{code}.png', qr_resp.headers.get('Content-Disposition', ''))
+
     # ── 20. Phase 3: Analytics Bounds Validation ──────────────────
     def test_analytics_limit_bounds(self):
         with app.app_context():
