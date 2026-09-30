@@ -75,14 +75,29 @@ def get_earnings(conn, uid):
     Computes all user ad monetization aggregates in a single performant query.
     Values stored in integer micro-dollars (amount_micros) and converted to dollars for display.
     """
-    row = conn.execute('''
-        SELECT 
-            COALESCE(SUM(amount_micros), 0) AS total_micros,
-            COALESCE(SUM(CASE WHEN amount_micros > 0 THEN amount_micros ELSE 0 END), 0) AS network_micros,
-            COALESCE(SUM(CASE WHEN amount_micros < 0 THEN ABS(amount_micros) ELSE 0 END), 0) AS custom_micros
-        FROM ad_ledger
-        WHERE owner_id = ?
-    ''', (uid,)).fetchone()
+    try:
+        row = conn.execute('''
+            SELECT 
+                COALESCE(SUM(amount_micros), 0) AS total_micros,
+                COALESCE(SUM(CASE WHEN amount_micros > 0 THEN amount_micros ELSE 0 END), 0) AS network_micros,
+                COALESCE(SUM(CASE WHEN amount_micros < 0 THEN ABS(amount_micros) ELSE 0 END), 0) AS custom_micros
+            FROM ad_ledger
+            WHERE owner_id = ?
+        ''', (uid,)).fetchone()
+    except sqlite3.OperationalError as e:
+        if "amount_micros" in str(e) or "owner_id" in str(e) or "no such table" in str(e):
+            logger.info("Self-healing: ad_ledger missing required columns, running upgrade_db...")
+            upgrade_db(conn)
+            row = conn.execute('''
+                SELECT 
+                    COALESCE(SUM(amount_micros), 0) AS total_micros,
+                    COALESCE(SUM(CASE WHEN amount_micros > 0 THEN amount_micros ELSE 0 END), 0) AS network_micros,
+                    COALESCE(SUM(CASE WHEN amount_micros < 0 THEN ABS(amount_micros) ELSE 0 END), 0) AS custom_micros
+                FROM ad_ledger
+                WHERE owner_id = ?
+            ''', (uid,)).fetchone()
+        else:
+            raise
 
     total_micros = row['total_micros']
     network_micros = row['network_micros']
@@ -106,81 +121,87 @@ def upgrade_db(db_conn):
     Fails loudly and re-raises on unexpected database errors to prevent corrupt states.
     """
     try:
+        existing_tables = {row[0] for row in db_conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+
         # 1. Ensure links columns exist
-        cursor = db_conn.execute("PRAGMA table_info(links)")
-        existing_cols = {row[1] for row in cursor.fetchall()}
-        new_cols = [
-            ("ad_type", "TEXT DEFAULT 'network'"),
-            ("custom_ad_url", "TEXT DEFAULT ''"),
-            ("custom_ad_title", "TEXT DEFAULT ''"),
-            ("custom_ad_desc", "TEXT DEFAULT ''"),
-            ("custom_ad_media_type", "TEXT DEFAULT 'link'")
-        ]
-        for col_name, col_def in new_cols:
-            if col_name not in existing_cols:
-                db_conn.execute(f"ALTER TABLE links ADD COLUMN {col_name} {col_def};")
-                logger.info("Migrated schema: added column %s to links", col_name)
+        if "links" in existing_tables:
+            cursor = db_conn.execute("PRAGMA table_info(links)")
+            existing_cols = {row[1] for row in cursor.fetchall()}
+            new_cols = [
+                ("ad_type", "TEXT DEFAULT 'network'"),
+                ("custom_ad_url", "TEXT DEFAULT ''"),
+                ("custom_ad_title", "TEXT DEFAULT ''"),
+                ("custom_ad_desc", "TEXT DEFAULT ''"),
+                ("custom_ad_media_type", "TEXT DEFAULT 'link'")
+            ]
+            for col_name, col_def in new_cols:
+                if col_name not in existing_cols:
+                    db_conn.execute(f"ALTER TABLE links ADD COLUMN {col_name} {col_def};")
+                    logger.info("Migrated schema: added column %s to links", col_name)
 
         # 2. Ensure users columns exist (session_version, email, email_normalized, email_verified_at)
-        user_cursor = db_conn.execute("PRAGMA table_info(users)")
-        user_cols = {row[1] for row in user_cursor.fetchall()}
-        user_new_cols = [
-            ("session_version", "INTEGER NOT NULL DEFAULT 1"),
-            ("email", "TEXT"),
-            ("email_normalized", "TEXT"),
-            ("email_verified_at", "TIMESTAMP")
-        ]
-        for col_name, col_def in user_new_cols:
-            if col_name not in user_cols:
-                db_conn.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def};")
-                logger.info("Migrated schema: added column %s to users", col_name)
+        if "users" in existing_tables:
+            user_cursor = db_conn.execute("PRAGMA table_info(users)")
+            user_cols = {row[1] for row in user_cursor.fetchall()}
+            user_new_cols = [
+                ("session_version", "INTEGER NOT NULL DEFAULT 1"),
+                ("email", "TEXT"),
+                ("email_normalized", "TEXT"),
+                ("email_verified_at", "TIMESTAMP")
+            ]
+            for col_name, col_def in user_new_cols:
+                if col_name not in user_cols:
+                    db_conn.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def};")
+                    logger.info("Migrated schema: added column %s to users", col_name)
 
-        # Unique index on email_normalized
-        db_conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_norm ON users(email_normalized) WHERE email_normalized IS NOT NULL;")
+            # Unique index on email_normalized
+            db_conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_norm ON users(email_normalized) WHERE email_normalized IS NOT NULL;")
 
         # 3. Migrate ad_ledger to use micro-dollars (amount_micros), owner_id, link_code, and ON DELETE SET NULL
-        ledger_cursor = db_conn.execute("PRAGMA table_info(ad_ledger)")
-        ledger_cols = {row[1] for row in ledger_cursor.fetchall()}
+        if "ad_ledger" in existing_tables:
+            ledger_cursor = db_conn.execute("PRAGMA table_info(ad_ledger)")
+            ledger_cols = {row[1] for row in ledger_cursor.fetchall()}
 
-        if "amount_micros" not in ledger_cols:
-            logger.info("Migrating ad_ledger to amount_micros and owner-retained history...")
-            db_conn.execute("PRAGMA foreign_keys = OFF;")
-            db_conn.execute('''
-                CREATE TABLE IF NOT EXISTS ad_ledger_new (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    link_id INTEGER,
-                    owner_id INTEGER,
-                    link_code TEXT,
-                    amount_micros INTEGER NOT NULL,
-                    ip_hash TEXT DEFAULT '',
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY(link_id) REFERENCES links(id) ON DELETE SET NULL,
-                    FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE SET NULL
-                );
-            ''')
-
-            # Check if old table has data to copy over
-            if "amount" in ledger_cols:
+            if "amount_micros" not in ledger_cols:
+                logger.info("Migrating ad_ledger to amount_micros and owner-retained history...")
+                db_conn.execute("PRAGMA foreign_keys = OFF;")
                 db_conn.execute('''
-                    INSERT INTO ad_ledger_new (id, link_id, owner_id, link_code, amount_micros, ip_hash, timestamp)
-                    SELECT 
-                        al.id,
-                        al.link_id,
-                        l.owner_id,
-                        l.code,
-                        CAST(ROUND(al.amount * 1000000) AS INTEGER),
-                        COALESCE(al.ip_hash, ''),
-                        al.timestamp
-                    FROM ad_ledger al
-                    LEFT JOIN links l ON l.id = al.link_id;
+                    CREATE TABLE IF NOT EXISTS ad_ledger_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        link_id INTEGER,
+                        owner_id INTEGER,
+                        link_code TEXT,
+                        amount_micros INTEGER NOT NULL,
+                        ip_hash TEXT DEFAULT '',
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(link_id) REFERENCES links(id) ON DELETE SET NULL,
+                        FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE SET NULL
+                    );
                 ''')
-            db_conn.execute("DROP TABLE IF EXISTS ad_ledger;")
-            db_conn.execute("ALTER TABLE ad_ledger_new RENAME TO ad_ledger;")
-            db_conn.execute("PRAGMA foreign_keys = ON;")
-            logger.info("Successfully migrated ad_ledger to micro-dollars schema.")
-        elif "owner_id" not in ledger_cols:
-            db_conn.execute("ALTER TABLE ad_ledger ADD COLUMN owner_id INTEGER;")
-            db_conn.execute("ALTER TABLE ad_ledger ADD COLUMN link_code TEXT;")
+
+                # Check if old table has data to copy over
+                if "amount" in ledger_cols:
+                    db_conn.execute('''
+                        INSERT INTO ad_ledger_new (id, link_id, owner_id, link_code, amount_micros, ip_hash, timestamp)
+                        SELECT 
+                            al.id,
+                            al.link_id,
+                            l.owner_id,
+                            l.code,
+                            CAST(ROUND(al.amount * 1000000) AS INTEGER),
+                            COALESCE(al.ip_hash, ''),
+                            al.timestamp
+                        FROM ad_ledger al
+                        LEFT JOIN links l ON l.id = al.link_id;
+                    ''')
+                db_conn.execute("DROP TABLE IF EXISTS ad_ledger;")
+                db_conn.execute("ALTER TABLE ad_ledger_new RENAME TO ad_ledger;")
+                db_conn.execute("PRAGMA foreign_keys = ON;")
+                logger.info("Successfully migrated ad_ledger to micro-dollars schema.")
+            elif "owner_id" not in ledger_cols:
+                db_conn.execute("ALTER TABLE ad_ledger ADD COLUMN owner_id INTEGER;")
+                db_conn.execute("ALTER TABLE ad_ledger ADD COLUMN link_code TEXT;")
+
 
         # 4. Ensure rate_limits table exists
         db_conn.execute('''
@@ -192,10 +213,11 @@ def upgrade_db(db_conn):
         ''')
 
         # 5. Case-insensitive username unique index (wrapped safely per Refinement 11)
-        try:
-            db_conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_nocase ON users(username COLLATE NOCASE);")
-        except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
-            logger.warning("Username collision or error detected during case-insensitive index creation (%s); skipping unique nocase index.", e)
+        if "users" in existing_tables:
+            try:
+                db_conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_nocase ON users(username COLLATE NOCASE);")
+            except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
+                logger.warning("Username collision or error detected during case-insensitive index creation (%s); skipping unique nocase index.", e)
 
         # 6. Ensure email_otps and mail_counters tables exist
         db_conn.execute('''
@@ -274,8 +296,13 @@ def init_db(app):
         conn.execute("PRAGMA foreign_keys = ON;")
         conn.execute(f"PRAGMA journal_mode = {journal_mode};")
 
+        # 1. Run migrations first on any existing legacy tables
+        upgrade_db(conn)
+
+        # 2. Run schema.sql to ensure all base tables and indexes exist
         with open(os.path.join(BASE_DIR, 'schema.sql'), 'r') as f:
             conn.executescript(f.read())
 
+        # 3. Finalize any indexes or post-schema migration adjustments
         upgrade_db(conn)
         conn.close()

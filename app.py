@@ -60,7 +60,7 @@ if not _is_testing:
     try:
         db.init_db(app)
     except Exception as _e:
-        logger.warning("Could not auto-initialize DB on startup: %s", _e)
+        logger.error("Could not auto-initialize DB on startup: %s", _e, exc_info=True)
 
 # Reverse proxy handling
 trusted_proxies = int(os.environ.get('TRUSTED_PROXY_COUNT', 1))

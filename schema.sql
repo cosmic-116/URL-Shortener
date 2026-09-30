@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
     session_version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_norm ON users(email_normalized) WHERE email_normalized IS NOT NULL;
 
 -- Links table
 CREATE TABLE IF NOT EXISTS links (
@@ -99,7 +98,6 @@ CREATE INDEX IF NOT EXISTS idx_clicks_ip_hash ON clicks(ip_hash);
 CREATE INDEX IF NOT EXISTS idx_clicks_composite ON clicks(link_id, ip_hash, timestamp);
 CREATE INDEX IF NOT EXISTS idx_links_owner_id ON links(owner_id);
 CREATE INDEX IF NOT EXISTS idx_ad_ledger_link_id ON ad_ledger(link_id);
-CREATE INDEX IF NOT EXISTS idx_ad_ledger_owner_id ON ad_ledger(owner_id);
 CREATE INDEX IF NOT EXISTS idx_ad_nonces_created ON ad_nonces(created_at);
 CREATE INDEX IF NOT EXISTS idx_rate_limits_key_ts ON rate_limits(key, timestamp);
 CREATE INDEX IF NOT EXISTS idx_email_otps_lookup ON email_otps(email_normalized, purpose, created_at);
