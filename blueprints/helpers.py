@@ -164,13 +164,13 @@ def require_api_key(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def _shorten_logic(owner_id):
+def _shorten_logic(owner_id, enforce_guest_quota=False):
     ip = request.remote_addr or 'unknown'
 
     # Anonymous homepage shortening is intentionally supported, but guests get
     # a separate rolling allowance. Authenticated users keep the existing
     # per-minute abuse limiter and are not affected by this guest quota.
-    if owner_id is None:
+    if enforce_guest_quota and owner_id is None:
         guest_key = f"guest_shorten:{get_ip_hash(ip)}"
         if core.is_rate_limited(
             guest_key,
