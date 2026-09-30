@@ -103,3 +103,8 @@ def qr_styled(code):
 def qr_download(code):
     """Download styled QR code as PNG file."""
     return _serve_qr_helper(code, style='styled', as_download=True)
+
+@qr_bp.route('/qr/<code>/download-basic', endpoint='qr_download_basic')
+def qr_download_basic(code):
+    """Download the basic black-on-white QR code as a PNG file."""
+    return _serve_qr_helper(code, style='basic', as_download=True)
