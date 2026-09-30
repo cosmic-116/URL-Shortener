@@ -63,7 +63,8 @@ if not _is_testing:
         logger.error("Could not auto-initialize DB on startup: %s", _e, exc_info=True)
 
 # Reverse proxy handling
-trusted_proxies = int(os.environ.get('TRUSTED_PROXY_COUNT', 1))
+default_proxies = 1 if os.environ.get('WEBSITE_HOSTNAME') else 0
+trusted_proxies = int(os.environ.get('TRUSTED_PROXY_COUNT', default_proxies))
 if trusted_proxies > 0:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=trusted_proxies, x_proto=trusted_proxies, x_host=trusted_proxies)
 
@@ -145,8 +146,8 @@ def inject_template_globals():
 def csrf_protect():
     """Validates CSRF tokens for all state-changing HTTP methods."""
     if request.method in ('POST', 'PUT', 'DELETE', 'PATCH'):
-        # Allow requests explicitly authenticated with an API key
-        if request.headers.get('X-API-Key') or request.path.startswith('/api/'):
+        # Only exempt programmatic REST API endpoints
+        if request.path.startswith('/api/'):
             return None
 
         submitted_token = request.headers.get('X-CSRFToken') or request.form.get('csrf_token')
@@ -511,11 +512,16 @@ def register_verify():
 
         plaintext_key, hashed_key = core.generate_api_key()
 
-        conn.execute('''
-            INSERT INTO users (username, password_hash, api_key_hash, email, email_normalized, email_verified_at)
-            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (username, pwhash, hashed_key, res['email_display'], data['email_normalized']))
-        conn.commit()
+        try:
+            conn.execute('''
+                INSERT INTO users (username, password_hash, api_key_hash, email, email_normalized, email_verified_at)
+                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (username, pwhash, hashed_key, res['email_display'], data['email_normalized']))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            flash('This username was claimed while completing registration. Please register with a different username.', 'error')
+            return redirect(url_for('register'))
 
         user = conn.execute('SELECT id, username, session_version FROM users WHERE username = ? COLLATE NOCASE', (username,)).fetchone()
         session.clear()
@@ -592,7 +598,7 @@ def login():
         identifier = request.form.get('username', '').strip()
         password = request.form.get('password', '')
 
-        if core.is_rate_limited(f"login_fail_user:{ip}:{identifier.lower()}", max_requests=5, window_seconds=900):
+        if core.is_rate_limited(f"login_fail_user:{ip}:{identifier.lower()}", max_requests=5, window_seconds=900, record=False):
             flash('Too many failed login attempts for this account. Please wait 15 minutes.', 'error')
             return render_template('login.html'), 429
 
@@ -816,7 +822,14 @@ def dashboard():
     ''', (uid, per_page, offset)).fetchall()
 
     earnings_data = db.get_earnings(conn, uid)
-    total_clicks = sum(link['click_count'] for link in links)
+    
+    total_clicks_row = conn.execute('''
+        SELECT COUNT(clicks.id) as tc 
+        FROM clicks 
+        JOIN links ON clicks.link_id = links.id 
+        WHERE links.owner_id = ?
+    ''', (uid,)).fetchone()
+    total_clicks = total_clicks_row['tc'] if total_clicks_row else 0
 
     return render_template('dashboard.html',
                            links=links,
@@ -835,16 +848,39 @@ def dashboard_live_stats():
     conn = db.get_db()
     uid = session['user_id']
 
-    links = conn.execute('''
-        SELECT links.id, links.code, COUNT(clicks.id) AS click_count
-        FROM links
-        LEFT JOIN clicks ON clicks.link_id = links.id
+    since = request.args.get('since', type=int)
+    
+    # Fast total clicks query
+    total_clicks_row = conn.execute('''
+        SELECT COUNT(clicks.id) as tc 
+        FROM clicks 
+        JOIN links ON clicks.link_id = links.id 
         WHERE links.owner_id = ?
-        GROUP BY links.id
-    ''', (uid,)).fetchall()
+    ''', (uid,)).fetchone()
+    total_clicks = total_clicks_row['tc'] if total_clicks_row else 0
+
+    # Only fetch links that received clicks recently if 'since' is provided
+    if since:
+        links = conn.execute('''
+            SELECT links.code, COUNT(clicks.id) AS click_count
+            FROM links
+            LEFT JOIN clicks ON clicks.link_id = links.id
+            WHERE links.owner_id = ? 
+              AND links.id IN (
+                  SELECT DISTINCT link_id FROM clicks WHERE timestamp >= datetime(?, 'unixepoch')
+              )
+            GROUP BY links.id
+        ''', (uid, since)).fetchall()
+    else:
+        links = conn.execute('''
+            SELECT links.code, COUNT(clicks.id) AS click_count
+            FROM links
+            LEFT JOIN clicks ON clicks.link_id = links.id
+            WHERE links.owner_id = ?
+            GROUP BY links.id
+        ''', (uid,)).fetchall()
 
     earnings_data = db.get_earnings(conn, uid)
-    total_clicks = sum(row['click_count'] for row in links)
 
     return jsonify({
         'earnings': earnings_data['earnings'],
@@ -1260,6 +1296,9 @@ def shorten_api():
         conn = db.get_db()
         user = core.get_user_by_api_key(conn, api_key)
         if not user:
+            ip = request.remote_addr or 'unknown'
+            if core.is_rate_limited(f"api_fail:{ip}", max_requests=10, window_seconds=600):
+                return jsonify({'error': 'Too many invalid API key attempts'}), 429
             return jsonify({'error': 'Invalid API key'}), 401
         return _shorten_logic(user['id'])
     return _shorten_logic(None)
@@ -1456,7 +1495,11 @@ def redirect_link(code):
         effective_ad_type = link['ad_type']
         effective_custom_url = link['custom_ad_url']
         if effective_ad_type == 'custom':
-            if not effective_custom_url or not core.is_safe_url(effective_custom_url):
+            owner_earnings = db.get_earnings(conn, link['owner_id'])
+            if owner_earnings['custom_spend'] + 0.01 > owner_earnings['network_earnings']:
+                effective_ad_type = 'network'
+                effective_custom_url = ''
+            elif not effective_custom_url or not core.is_safe_url(effective_custom_url):
                 # Unsafe custom ad: gracefully fall back to network ad slot
                 effective_ad_type = 'network'
                 effective_custom_url = ''

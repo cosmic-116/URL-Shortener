@@ -93,7 +93,12 @@ def calculate_expiry(expires_in):
     """
     if expires_in is None:
         return True, None
+    if isinstance(expires_in, bool):
+        return False, "expires_in cannot be a boolean"
     if isinstance(expires_in, (int, float)):
+        import math
+        if not math.isfinite(expires_in):
+            return False, "expires_in must be a finite number"
         seconds = float(expires_in)
     elif isinstance(expires_in, str):
         expires_in = expires_in.strip()
@@ -139,7 +144,7 @@ def calculate_expiry(expires_in):
 _rate_limits = {}
 _rl_lock = Lock()
 
-def is_rate_limited(key, max_requests=15, window_seconds=60, conn=None):
+def is_rate_limited(key, max_requests=15, window_seconds=60, conn=None, record=True):
     """
     SQLite-backed sliding-window rate limiter sharing state across Gunicorn workers.
     Falls back gracefully to in-memory deque if database is unavailable.
@@ -165,8 +170,9 @@ def is_rate_limited(key, max_requests=15, window_seconds=60, conn=None):
         if count >= max_requests:
             return True
 
-        conn.execute('INSERT INTO rate_limits (key, timestamp) VALUES (?, ?)', (key, now))
-        conn.commit()
+        if record:
+            conn.execute('INSERT INTO rate_limits (key, timestamp) VALUES (?, ?)', (key, now))
+            conn.commit()
         return False
     except Exception as e:
         logger.debug("Database rate limiter fallback: %s", e)
@@ -186,7 +192,8 @@ def is_rate_limited(key, max_requests=15, window_seconds=60, conn=None):
             if len(dq) >= max_requests:
                 return True
 
-            dq.append(now)
+            if record:
+                dq.append(now)
             return False
 
 
@@ -307,7 +314,7 @@ def validate_url_at_creation(url):
 
     cached = _get_cached_verdict(hostname_clean)
     if cached is not None:
-        return cached, (None if cached else 'Blocked by cached DNS verdict')
+        return cached
 
     # Check if decimal IP literal or standard IP literal
     if hostname_clean.isdigit():

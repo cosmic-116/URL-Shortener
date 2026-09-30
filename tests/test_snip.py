@@ -516,6 +516,12 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
         with patch('core._resolve_dns_with_timeout', side_effect=TimeoutError("DNS timeout")):
             self.assertFalse(core.validate_url_at_creation("http://slowdns.test.com"))
 
+    def test_url_blocklist_cached_verdict_rejection(self):
+        core._set_cached_verdict("blocked-domain-cached.com", False)
+        # Should return False both times, not a tuple on the second time.
+        self.assertFalse(core.validate_url_at_creation("http://blocked-domain-cached.com"))
+        self.assertFalse(core.validate_url_at_creation("http://blocked-domain-cached.com"))
+
     def test_validate_url_redirect_lru_cache(self):
         core._set_cached_verdict("cached-global-domain.org", True)
         self.assertTrue(core.validate_url_at_redirect("https://cached-global-domain.org/path"))
@@ -578,6 +584,21 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
 
         # Verify screenshot file removed
         self.assertFalse(os.path.exists(screenshot_path))
+
+    def test_api_shorten_invalid_expiry(self):
+        plain_key = self.setup_api_user('expiryuser')
+        # Test NaN
+        resp = self.client.post('/api/shorten', headers={'X-API-Key': plain_key}, json={'url': 'https://example.com', 'expires_in': float('nan')})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('must be a finite number', resp.get_json()['error'])
+        # Test Infinity
+        resp = self.client.post('/api/shorten', headers={'X-API-Key': plain_key}, json={'url': 'https://example.com', 'expires_in': float('inf')})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('must be a finite number', resp.get_json()['error'])
+        # Test Boolean
+        resp = self.client.post('/api/shorten', headers={'X-API-Key': plain_key}, json={'url': 'https://example.com', 'expires_in': True})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('cannot be a boolean', resp.get_json()['error'])
 
     # ── 15. Phase 3: Logout POST-only ────────────────────────────
     def test_logout_post_only(self):

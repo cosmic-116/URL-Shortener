@@ -73,6 +73,7 @@ Configure the application using environment variables:
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `FLASK_SECRET_KEY` | **Yes** (in prod) | *(Auto-generated in dev)* | Secret key for sessions, CSRF, and cryptographic tokens. |
+| `API_KEY_PEPPER` | **Yes** (in prod) | *(Auto-generated in dev)* | Pepper used to hash generated API keys securely. |
 | `FLASK_DEBUG` | No | `0` | Set `1` for local debugging. |
 | `BASE_URL` | No | `""` | Canonical host (e.g. `https://snip.example.com`). Defaults to `request.host_url`. |
 | `DATA_DIR` | No | `/home/data` | Storage directory for `database.db` and thumbnails. |
@@ -157,6 +158,7 @@ curl http://127.0.0.1:5000/api/analytics?limit=10 \
 1. Connect your repository in **Deployment Center** (GitHub Actions).
 2. Configure **Application Settings** under Configuration in the Azure Portal:
    - `FLASK_SECRET_KEY`: Generate a 64-char hex string (`python -c "import secrets; print(secrets.token_hex(32))"`)
+   - `API_KEY_PEPPER`: Generate a 64-char hex string (`python -c "import secrets; print(secrets.token_hex(32))"`)
    - `MAIL_BACKEND`: `acs` or `smtp`
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`
    - `DATA_DIR`: `/home/data`

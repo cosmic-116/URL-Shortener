@@ -78,6 +78,7 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
                     Ad Balance
                 </span>
+                <span title="Monetization is currently in simulation mode. No real currency is charged or disbursed." style="cursor: help; margin-left: 8px; font-size: 10px; font-weight: 700; color: #feca57; background: rgba(254,202,87,0.1); border: 1px solid rgba(254,202,87,0.3); padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Demo / Simulated</span>
                 <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">+$0.02 / -$0.01</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
@@ -792,11 +793,15 @@ if (globalFrame && window.gsap) {
 let lastKnownEarnings = {{ earnings|tojson }};
 let lastKnownClicks = {{ total_clicks|tojson }};
 
+let lastPollTime = Math.floor(Date.now() / 1000) - 60; // start with last minute
+
 async function pollLiveTelemetry() {
     try {
-        const res = await fetch('/dashboard/live-stats');
+        const res = await fetch(`/dashboard/live-stats?since=${lastPollTime}`);
         if (!res.ok) return;
         const data = await res.json();
+        
+        lastPollTime = Math.floor(Date.now() / 1000);
 
         // Update Total Clicks
         const clicksEl = document.getElementById('statClicks');
@@ -841,7 +846,7 @@ let pollIntervalId = null;
 
 function startPolling() {
     if (!pollIntervalId) {
-        pollIntervalId = setInterval(pollLiveTelemetry, 2500);
+        pollIntervalId = setInterval(pollLiveTelemetry, 20000);
     }
 }
 

@@ -13,7 +13,7 @@ DATA_DIR = os.environ.get('DATA_DIR', BASE_DIR)
 os.makedirs(DATA_DIR, exist_ok=True)
 DATABASE = os.path.join(DATA_DIR, 'database.db')
 
-DB_TIMEOUT = 5.0  # Unified 5-second timeout for lock acquisition
+DB_TIMEOUT = 15.0  # Increased timeout for Azure high concurrency
 
 def get_db():
     """Returns the request-scoped database connection."""
@@ -58,6 +58,8 @@ def cleanup_stale_records(db_conn):
         """)
         # Purge OTP rows older than 24h
         db_conn.execute("DELETE FROM email_otps WHERE created_at < datetime('now', '-24 hours')")
+        # Prune rate limit records older than 24h
+        db_conn.execute("DELETE FROM rate_limits WHERE timestamp < (strftime('%s', 'now') - 86400)")
         
         # Prune mail counters older than 48h (days), 2h (hours), 5m (minutes)
         cutoff_day = db_conn.execute("SELECT strftime('%Y-%m-%d', 'now', '-2 days')").fetchone()[0]
