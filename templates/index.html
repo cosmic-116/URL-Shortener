@@ -431,6 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const qrBasicUrl = '/qr/' + data.code;
                         const qrBasicDownloadUrl = '/qr/' + data.code + '/download-basic';
                         const qrStyledUrl = '/qr/' + data.code + '/styled';
+                        const qrStyledDownloadUrl = '/qr/' + data.code + '/download';
                         const qrStudioUrl = '/dashboard/qr/' + data.code;
                         const canUseQrStudio = {{ 'true' if session.get('user_id') else 'false' }};
 
@@ -443,7 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         {% endif %}
                         if (qrImg) qrImg.src = qrViewUrl;
                         const dlBtn = document.getElementById('qrDownloadDirect');
-                        if (dlBtn) dlBtn.href = canUseQrStudio ? qrBasicDownloadUrl : qrBasicUrl;
+                        if (dlBtn) dlBtn.href = canUseQrStudio ? qrStyledDownloadUrl : qrBasicDownloadUrl;
                         const studioDirect = document.getElementById('qrStudioDirect');
                         if (studioDirect) studioDirect.href = qrStudioUrl;
                         const qrFrame = document.getElementById('qrFrameAction');
