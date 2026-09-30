@@ -50,7 +50,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# 4. Run automated test suite (55 tests)
+# 4. Run automated test suite (65 tests)
 python -m unittest discover -s tests -v
 
 # 5. Run security audit
@@ -167,4 +167,4 @@ curl http://127.0.0.1:5000/api/analytics?limit=10 \
    ```bash
    bash startup.sh
    ```
-4. Pushing to `main` automatically runs `pip-audit`, executes the 55-test suite, and deploys to App Service.
+4. Pushing to `main` automatically runs `pip-audit`, executes the 65-test suite, and deploys to App Service.
