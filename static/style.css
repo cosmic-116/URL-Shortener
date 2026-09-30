@@ -62,58 +62,6 @@ body {
     z-index: 1;
 }
 
-/* --- Sleek Hardware-Accelerated Cursor --- */
-#cursor-dot {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 6px;
-    background: #ffffff;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 99999;
-    margin: -3px 0 0 -3px;
-    will-change: transform;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-}
-
-#cursor-ring {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 32px;
-    height: 32px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 99998;
-    margin: -16px 0 0 -16px;
-    will-change: transform;
-    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
-                height 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
-                margin 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
-                background 0.25s ease, 
-                border-color 0.25s ease;
-}
-
-#cursor-ring.cursor-hover {
-    width: 52px;
-    height: 52px;
-    margin: -26px 0 0 -26px;
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(1px);
-}
-
-#cursor-ring.cursor-text {
-    width: 22px;
-    height: 30px;
-    margin: -15px 0 0 -11px;
-    border-radius: 4px;
-    border-color: rgba(255, 255, 255, 0.5);
-    background: transparent;
-}
 
 /* --- Floating Blur Navbar --- */
 .nav-floating {
@@ -525,51 +473,70 @@ body {
     color: var(--accent-emerald);
 }
 
-/* --- Plain Side-Moving Marquee Ribbon --- */
+/* --- Infinite Marquee with Blur Fade Edges --- */
 .marquee-wrapper {
-    margin: 50px 0;
+    margin: 100px 0;
     overflow: hidden;
     white-space: nowrap;
     position: relative;
-    padding: 14px 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.015);
-    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
 }
 
 .marquee-track {
     display: flex;
     width: max-content;
-    animation: plainSideMove 32s linear infinite;
-    align-items: center;
+    animation: marqueeScroll 35s linear infinite;
+}
+
+.marquee-track.reverse {
+    animation: marqueeScrollRev 40s linear infinite;
+    margin-top: 18px;
 }
 
 .marquee-item {
-    font-size: 13.5px;
-    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0 24px;
+    letter-spacing: -0.02em;
+    padding: 0 30px;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    color: var(--text-secondary);
+    gap: 18px;
+    color: rgba(255, 255, 255, 0.9);
     user-select: none;
-    transition: color 0.2s ease;
-}
-
-.marquee-item:hover {
-    color: #ffffff;
+    transition: var(--transition);
 }
 
 .marquee-icon {
-    width: 16px;
-    height: 16px;
-    stroke: var(--accent-emerald);
+    width: clamp(26px, 3.5vw, 40px);
+    height: clamp(26px, 3.5vw, 40px);
+    stroke: currentColor;
     stroke-width: 2.2;
     flex-shrink: 0;
+    opacity: 0.88;
+}
+
+.marquee-item.outline {
+    color: var(--bg-main);
+    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.32);
+    paint-order: stroke fill;
+    transition: var(--transition);
+}
+
+.marquee-item.outline .marquee-icon {
+    stroke: rgba(255, 255, 255, 0.32);
+    transition: var(--transition);
+}
+
+.marquee-item.outline:hover {
+    color: var(--bg-main);
+    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.85);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+}
+
+.marquee-item.outline:hover .marquee-icon {
+    stroke: rgba(255, 255, 255, 0.85);
 }
 
 .marquee-wrapper:hover .marquee-track {
@@ -577,23 +544,22 @@ body {
 }
 
 .marquee-bullet {
-    width: 5px;
-    height: 5px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.3);
 }
 
-@keyframes plainSideMove {
+@keyframes marqueeScroll {
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
 }
 
-/* --- Minimal Features Section --- */
-.minimal-features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+@keyframes marqueeScrollRev {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
 }
+
 
 /* --- Interactive Bento Grid Section --- */
 .section-container {
@@ -1561,10 +1527,6 @@ html, body {
 
 /* Comprehensive Mobile Breakpoints (<= 900px, <= 768px, <= 480px) */
 @media (max-width: 900px) {
-    .minimal-features-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
     .dashboard-stats-grid {
         grid-template-columns: 1fr;
         gap: 16px;

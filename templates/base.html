@@ -13,7 +13,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://unpkg.com">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
@@ -21,9 +20,6 @@
     <!-- Interactive Background Canvas (Avik Yadav / Three.js particle field) -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-    <!-- Sleek Precision Cursor Follower (Lag-free) -->
-    <div id="cursor-dot" aria-hidden="true"></div>
-    <div id="cursor-ring" aria-hidden="true"></div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -50,52 +46,21 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Core CDN Libraries: Lenis, GSAP, ScrollTrigger with Subresource Integrity -->
-    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/@studio-freight/lenis@1.0.39/dist/lenis.min.js" integrity="sha384-o/NmTUMyj0xBXquK9mLCg/ER0KlJxjnA/2fPgeg6H5acZfxPTGuWiwDSnPZxw/8o" crossorigin="anonymous"></script>
+    <!-- Core CDN Libraries: GSAP, ScrollTrigger with Subresource Integrity -->
     <script nonce="{{ csp_nonce }}" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>
     <script nonce="{{ csp_nonce }}" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous"></script>
 
-    <!-- Base Engine Script (Lenis + GSAP Ticker + Particle Canvas + Cursor) -->
+    <!-- Base Engine Script (High-Performance Background Canvas) -->
     <script nonce="{{ csp_nonce }}">
     (function() {
-        // 1. Lenis Smooth Scroll Synchronized with GSAP
-        let lenis;
-        try {
-            lenis = new Lenis({
-                duration: 1.0,
-                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-                smoothWheel: true,
-                wheelMultiplier: 1.0,
-                touchMultiplier: 1.2,
-                infinite: false
-            });
-
-            if (window.gsap && window.ScrollTrigger) {
-                gsap.registerPlugin(ScrollTrigger);
-                lenis.on('scroll', ScrollTrigger.update);
-                gsap.ticker.add((time) => {
-                    lenis.raf(time * 1000);
-                });
-                gsap.ticker.lagSmoothing(0);
-            } else {
-                function raf(time) {
-                    lenis.raf(time);
-                    requestAnimationFrame(raf);
-                }
-                requestAnimationFrame(raf);
-            }
-        } catch (e) {
-            console.warn('Smooth scroll fallback:', e);
-        }
-
-        // 2. High-Performance Interactive Particle Canvas (Zero-lag 60fps)
+        // High-Performance Interactive Particle Canvas (Native 60fps)
         const canvas = document.getElementById('bg-canvas');
         if (canvas) {
             const ctx = canvas.getContext('2d');
             let width, height;
             let particles = [];
-            const particleCount = window.innerWidth < 768 ? 35 : 75;
-            let mouse = { x: -1000, y: -1000, radius: 140 };
+            const particleCount = window.innerWidth < 768 ? 25 : 50;
+            let mouse = { x: -1000, y: -1000, radius: 120 };
 
             function resize() {
                 width = canvas.width = window.innerWidth;
@@ -113,10 +78,10 @@
                 constructor() {
                     this.x = Math.random() * width;
                     this.y = Math.random() * height;
-                    this.vx = (Math.random() - 0.5) * 0.4;
-                    this.vy = (Math.random() - 0.5) * 0.4;
-                    this.radius = Math.random() * 1.5 + 0.8;
-                    this.baseAlpha = Math.random() * 0.35 + 0.15;
+                    this.vx = (Math.random() - 0.5) * 0.35;
+                    this.vy = (Math.random() - 0.5) * 0.35;
+                    this.radius = Math.random() * 1.4 + 0.6;
+                    this.baseAlpha = Math.random() * 0.3 + 0.15;
                 }
                 update() {
                     this.x += this.vx;
@@ -127,14 +92,13 @@
                     if (this.y < 0) this.y = height;
                     if (this.y > height) this.y = 0;
 
-                    // Mouse gentle repulsion / reaction
                     const dx = mouse.x - this.x;
                     const dy = mouse.y - this.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < mouse.radius) {
                         const force = (mouse.radius - dist) / mouse.radius;
-                        this.x -= (dx / dist) * force * 1.5;
-                        this.y -= (dy / dist) * force * 1.5;
+                        this.x -= (dx / dist) * force * 1.2;
+                        this.y -= (dy / dist) * force * 1.2;
                     }
                 }
                 draw() {
@@ -152,7 +116,6 @@
             function animate() {
                 ctx.clearRect(0, 0, width, height);
 
-                // Draw connections between close particles
                 for (let i = 0; i < particles.length; i++) {
                     particles[i].update();
                     particles[i].draw();
@@ -161,13 +124,13 @@
                         const dx = particles[i].x - particles[j].x;
                         const dy = particles[i].y - particles[j].y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 110) {
+                        if (dist < 95) {
                             ctx.beginPath();
                             ctx.moveTo(particles[i].x, particles[i].y);
                             ctx.lineTo(particles[j].x, particles[j].y);
-                            const alpha = (1 - dist / 110) * 0.12;
+                            const alpha = (1 - dist / 95) * 0.1;
                             ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-                            ctx.lineWidth = 0.6;
+                            ctx.lineWidth = 0.5;
                             ctx.stroke();
                         }
                     }
@@ -175,47 +138,6 @@
                 requestAnimationFrame(animate);
             }
             animate();
-        }
-
-        // 3. Ultra-Smooth Native Lerp Cursor (Hardware Accelerated)
-        const cursorDot = document.getElementById('cursor-dot');
-        const cursorRing = document.getElementById('cursor-ring');
-        if (cursorDot && cursorRing && window.matchMedia('(pointer: fine)').matches) {
-            let mouseX = -100, mouseY = -100;
-            let ringX = -100, ringY = -100;
-
-            window.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-            }, { passive: true });
-
-            function renderCursor() {
-                ringX += (mouseX - ringX) * 0.18;
-                ringY += (mouseY - ringY) * 0.18;
-                cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
-                requestAnimationFrame(renderCursor);
-            }
-            requestAnimationFrame(renderCursor);
-
-            // Delegate hover states efficiently
-            document.addEventListener('mouseover', (e) => {
-                const target = e.target.closest('a, button, input, .interactive-card, .btn-action');
-                if (target) {
-                    if (target.tagName === 'INPUT') {
-                        cursorRing.classList.add('cursor-text');
-                    } else {
-                        cursorRing.classList.add('cursor-hover');
-                    }
-                }
-            });
-
-            document.addEventListener('mouseout', (e) => {
-                const target = e.target.closest('a, button, input, .interactive-card, .btn-action');
-                if (target) {
-                    cursorRing.classList.remove('cursor-hover', 'cursor-text');
-                }
-            });
         }
     })();
     </script>
