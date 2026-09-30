@@ -288,7 +288,7 @@ def _wants_json():
 def bad_request(e):
     if _wants_json():
         return jsonify({'error': 'Bad Request'}), 400
-    return render_template('403.html', reason="Invalid request data."), 400
+    return render_template('400.html', reason="Invalid request data."), 400
 
 @app.errorhandler(403)
 def forbidden(e):
@@ -306,7 +306,7 @@ def page_not_found(e):
 def method_not_allowed(e):
     if _wants_json():
         return jsonify({'error': 'Method Not Allowed'}), 405
-    return render_template('403.html', reason="Method not allowed."), 405
+    return render_template('405.html', reason="Method not allowed."), 405
 
 @app.errorhandler(410)
 def resource_gone(e):
@@ -318,7 +318,7 @@ def resource_gone(e):
 def request_entity_too_large(e):
     if _wants_json():
         return jsonify({'error': 'Payload Too Large'}), 413
-    return render_template('403.html', reason="Payload exceeds maximum allowed size."), 413
+    return render_template('413.html', reason="Payload exceeds maximum allowed size."), 413
 
 @app.errorhandler(429)
 def too_many_requests(e):
@@ -360,10 +360,12 @@ def robots():
     """Prevents search crawlers from traversing short codes and wasting bandwidth."""
     content = (
         "User-agent: *\n"
-        "Disallow: /*/\n"
+        "Disallow: /qr/\n"
+        "Disallow: /preview/\n"
         "Disallow: /continue/\n"
         "Disallow: /dashboard/\n"
         "Disallow: /api/\n"
+        "Disallow: /account\n"
         "Allow: /\n"
     )
     return app.response_class(content, mimetype='text/plain')
@@ -1163,14 +1165,14 @@ def _delete_screenshot_file(code):
 def dashboard_delete(code):
     """Session-authenticated delete for the web UI."""
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         return jsonify({'error': 'Not found'}), 404
 
     if link['owner_id'] != session['user_id']:
         return jsonify({'error': 'Forbidden'}), 403
 
-    conn.execute('DELETE FROM links WHERE code = ?', (code,))
+    conn.execute('DELETE FROM links WHERE code = ? COLLATE NOCASE', (code,))
     conn.commit()
     _delete_screenshot_file(code)
     return jsonify({'message': 'Deleted'}), 200
@@ -1215,7 +1217,7 @@ def _clean_ad_config(data):
 def dashboard_toggle_ads(code):
     """Toggle ads monetization on/off for a link."""
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         return jsonify({'error': 'Not found'}), 404
 
@@ -1234,7 +1236,7 @@ def dashboard_toggle_ads(code):
         if not core.is_safe_url(link['custom_ad_url']):
             return jsonify({'error': 'Cannot enable ads: custom ad URL is invalid or unsafe.'}), 400
 
-    conn.execute('UPDATE links SET ads_enabled = ? WHERE code = ?', (new_val, code))
+    conn.execute('UPDATE links SET ads_enabled = ? WHERE code = ? COLLATE NOCASE', (new_val, code))
     conn.commit()
     return jsonify({'message': 'Updated', 'ads_enabled': bool(new_val)}), 200
 
@@ -1244,7 +1246,7 @@ def dashboard_toggle_ads(code):
 def dashboard_configure_ad(code):
     """Configure ad mode (network vs custom) and ad creative details for a link."""
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         return jsonify({'error': 'Not found'}), 404
 
@@ -1271,7 +1273,7 @@ def dashboard_configure_ad(code):
             custom_ad_desc = ?,
             custom_ad_media_type = ?,
             ads_enabled = 1
-        WHERE code = ?
+        WHERE code = ? COLLATE NOCASE
     ''', (cleaned['ad_type'], cleaned['custom_ad_url'], cleaned['custom_ad_title'],
           cleaned['custom_ad_desc'], cleaned['custom_ad_media_type'], code))
     conn.commit()
@@ -1434,7 +1436,7 @@ def _shorten_logic(owner_id):
 @app.route('/<code>')
 def redirect_link(code):
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         # Fallback to case-insensitive lookup for user aliases
         link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
@@ -1626,7 +1628,7 @@ def continue_ad(token):
 @require_api_key
 def api_stats(code):
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         return jsonify({'error': 'Not found'}), 404
 
@@ -1651,14 +1653,14 @@ def api_stats(code):
 @require_api_key
 def api_delete(code):
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         return jsonify({'error': 'Not found'}), 404
 
     if link['owner_id'] != g.api_user['id']:
         return jsonify({'error': 'Forbidden'}), 403
 
-    conn.execute('DELETE FROM links WHERE code = ?', (code,))
+    conn.execute('DELETE FROM links WHERE code = ? COLLATE NOCASE', (code,))
     conn.commit()
     _delete_screenshot_file(code)
     return jsonify({'message': 'Deleted successfully'})
@@ -1755,7 +1757,7 @@ def qr_basic(code):
         return render_template('429.html'), 429
 
     conn = db.get_db()
-    link = conn.execute('SELECT code FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT code FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         abort(404)
 
@@ -1782,7 +1784,7 @@ def qr_styled(code):
         return render_template('429.html'), 429
 
     conn = db.get_db()
-    link = conn.execute('SELECT code FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT code FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         abort(404)
 
@@ -1809,7 +1811,7 @@ def qr_download(code):
         return render_template('429.html'), 429
 
     conn = db.get_db()
-    link = conn.execute('SELECT code FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT code FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         abort(404)
 
@@ -1832,7 +1834,7 @@ def dashboard_qr(code):
     if not re.fullmatch(r'^[A-Za-z0-9_-]{1,30}$', code):
         abort(404)
     conn = db.get_db()
-    link = conn.execute('SELECT * FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT * FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         abort(404)
     if link['owner_id'] != session['user_id']:
@@ -1852,7 +1854,7 @@ def preview_image(code):
         abort(404)
 
     conn = db.get_db()
-    link = conn.execute('SELECT id FROM links WHERE code = ?', (code,)).fetchone()
+    link = conn.execute('SELECT id FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         abort(404)
 

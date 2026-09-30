@@ -79,7 +79,9 @@ Configure the application using environment variables:
 | `DATA_DIR` | No | `/home/data` | Storage directory for `database.db` and thumbnails. |
 | `DB_JOURNAL_MODE` | No | `WAL` | SQLite journal mode (`WAL` or `DELETE`). |
 | `PORT` | No | `8000` | Port for Gunicorn server. |
-| `MAIL_BACKEND` | **Yes** (in prod) | `console` | Email provider: `acs`, `smtp`, `console`, or `test`. |
+| `TRUSTED_PROXY_COUNT` | No | `1` (Azure) / `0` | Number of trusted reverse proxies. |
+| `REQUIRE_VERIFIED_EMAIL_FOR_API` | No | `0` | Set `1` to require verified email for API access. |
+| `MAIL_BACKEND` | **Yes** (in prod) | `acs` | Email provider: `acs`, `smtp`, `console`, or `test`. |
 | `SMTP_HOST` | For `acs`/`smtp` | `""` | SMTP server host (e.g. `smtp.azurecomm.net`). |
 | `SMTP_PORT` | For `acs`/`smtp` | `587` | SMTP port (STARTTLS). |
 | `SMTP_USER` | For `acs`/`smtp` | `""` | SMTP username / Entra ID Client ID. |
@@ -126,7 +128,7 @@ curl http://127.0.0.1:5000/api/stats/my-link \
   "original_url": "https://example.com",
   "clicks": 42,
   "created_at": "2026-09-30 18:00:00",
-  "expires_at": "2026-10-07 12:00:00"
+  "safety_status": "clean"
 }
 ```
 
@@ -138,8 +140,7 @@ curl -X DELETE http://127.0.0.1:5000/api/my-link \
 **Response (200 OK):**
 ```json
 {
-  "success": true,
-  "message": "Link deleted successfully."
+  "message": "Deleted successfully"
 }
 ```
 
