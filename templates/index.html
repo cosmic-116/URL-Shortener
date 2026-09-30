@@ -118,9 +118,9 @@
 
                     <div class="qr-preview-layout">
                         <!-- Reactive QR Visual Box -->
-                        <div class="qr-interactive-frame" id="qrFrameAction" title="Click to view or save QR code">
+                        <div class="qr-interactive-frame" id="qrFrameAction" role="button" tabindex="0" title="Click to view or save QR code" aria-label="View QR code">
                             <div class="qr-glow-aura"></div>
-                            <img id="qrPreviewImg" src="" alt="Dynamic Vector QR Code" width="112" height="112" class="qr-preview-image">
+                            <img id="qrPreviewImg" src="" alt="{% if session.get('user_id') %}Dynamic Vector QR Code{% else %}Basic QR Code{% endif %}" width="112" height="112" class="qr-preview-image">
                             <div class="qr-corner-accent tl"></div>
                             <div class="qr-corner-accent tr"></div>
                             <div class="qr-corner-accent bl"></div>
@@ -449,7 +449,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (studioDirect) studioDirect.href = qrStudioUrl;
                         const qrFrame = document.getElementById('qrFrameAction');
                         if (qrFrame) {
-                            qrFrame.onclick = () => window.open(qrViewUrl, '_blank');
+                            const openQr = () => window.open(qrViewUrl, '_blank');
+                            qrFrame.onclick = openQr;
+                            qrFrame.onkeydown = (event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    openQr();
+                                }
+                            };
                         }
                     }
 
@@ -459,6 +466,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     copyBtn.classList.remove('copied');
                     copyText.innerText = 'Copy Link';
                     Snip.toast("Short URL created successfully!", "success");
+                } else if (res.status === 429 && data.guest_limit_reached) {
+                    Snip.confirm({
+                        title: 'Keep Shortening with Snip',
+                        message: 'You’ve used your 5 free guest shortens for this window. Create a free account to keep shortening links and unlock your full Snip dashboard.',
+                        confirmText: 'Create Free Account'
+                    }).then((createAccount) => {
+                        if (createAccount && data.register_url) {
+                            window.location.href = data.register_url;
+                        }
+                    });
                 } else {
                     Snip.toast(data.error || 'Failed to shorten URL.', 'error');
                 }
