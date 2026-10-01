@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+{% block content %}
+
+<!-- Floating Dashboard Header -->
+<header class="nav-floating" style="max-width: 1280px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="{{ url_for('index') }}" class="logo-minimal">
+            <div class="brand-symbol">
+                <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="blade-top">
+                        <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                    </g>
+                    <g class="blade-bottom">
+                        <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                    </g>
+                    <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                    <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="brand-text">Snip</span><span class="dot"></span>
+        </a>
+        <span class="nav-divider" style="width: 1px; height: 18px; background: var(--border);"></span>
+        <a href="{{ url_for('dashboard') }}" class="nav-section-title" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500;">Dashboard</a>
+        <span class="nav-divider" style="font-size: 12px; color: var(--text-muted);">›</span>
+        <span class="nav-section-title" style="font-size: 13px; color: var(--text-primary); font-weight: 600;">Account Settings</span>
+    </div>
+    <div class="nav-user-actions" style="display: flex; align-items: center; gap: 14px;">
+        <a href="{{ url_for('dashboard') }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px;"><span class="hide-mobile">← Back to </span><span class="show-mobile">← </span>Dashboard</a>
+        <form action="{{ url_for('logout') }}" method="POST" style="margin: 0; display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-outline" style="padding: 6px 14px; font-size: 12px; cursor: pointer; background: transparent;">Log Out</button>
+        </form>
+    </div>
+</header>
+
+<main class="dashboard-main" style="max-width: 900px; margin: 0 auto; padding: 130px 24px 100px;">
+    
+    <!-- Account Overview Header -->
+    <div style="margin-bottom: 32px;">
+        <h1 style="font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 8px;">
+            Account &amp; Security
+        </h1>
+        <p style="font-size: 14px; color: var(--text-secondary);">
+            Manage your credentials, verified email, API keys, and active sessions.
+        </p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <!-- Section 1: Verified Email & Change Email -->
+        <div class="bento-cell" style="padding: 32px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+                <span class="bento-tag" style="margin: 0;">Verified Email</span>
+                <span class="pill pill-clean" style="font-size: 11px;">Verified</span>
+            </div>
+            
+            <div style="font-size: 18px; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-bottom: 8px;">
+                {{ user.email or 'No email verified' }}
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                Used for account recovery, security alerts, and ad monetization qualification.
+            </p>
+
+            <button type="button" id="toggleChangeEmailBtn" class="btn-outline" aria-expanded="false" aria-controls="changeEmailDrawer" style="font-size: 12.5px; padding: 8px 16px;">
+                Change Email Address
+            </button>
+
+            <!-- Change Email Drawer -->
+            <div id="changeEmailDrawer" aria-hidden="true" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <form action="/dashboard/account/change-email" method="POST" style="display: flex; flex-direction: column; gap: 14px; max-width: 440px;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="changeEmailCurrentPassword">Current Password</label>
+                        <input type="password" id="changeEmailCurrentPassword" name="current_password" class="form-input" placeholder="Enter current password" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="changeEmailNewEmail">New Email Address</label>
+                        <input type="email" id="changeEmailNewEmail" name="new_email" class="form-input" placeholder="new-email@domain.com" required autocomplete="email">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">
+                        <span>Send Verification Code to New Email</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Section 2: Change Password -->
+        <div class="bento-cell" style="padding: 32px;">
+            <span class="bento-tag" style="margin-bottom: 16px;">Password &amp; Security</span>
+            <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">Change Password</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                Updating your password will revoke all other active sessions across devices.
+            </p>
+
+            <form action="/dashboard/account/change-password" method="POST" style="display: flex; flex-direction: column; gap: 16px; max-width: 440px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="changePasswordCurrent">Current Password</label>
+                    <input type="password" id="changePasswordCurrent" name="current_password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="changePasswordNew">New Password</label>
+                    <input type="password" id="changePasswordNew" name="new_password" class="form-input" placeholder="At least 8 chars, 1 letter, 1 number" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">
+                    <span>Update Password</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Section 3: API Key Management -->
+        <div class="bento-cell" style="padding: 32px;">
+            <span class="bento-tag" style="margin-bottom: 16px;">Developer Access</span>
+            <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">API Key</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                Authenticate CLI and programmatic link operations. Regenerating immediately invalidates the previous key.
+            </p>
+
+            <div id="accountNewKeyBox" style="display: none; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--accent-emerald); border-radius: 10px; padding: 14px; margin-bottom: 18px; max-width: 520px;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--accent-emerald); font-weight: 700; margin-bottom: 6px;">New Key Generated (Save Now)</div>
+                <code id="accountNewKeyValue" style="font-family: var(--font-mono); font-size: 13px; color: #fff; word-break: break-all;"></code>
+            </div>
+
+            <form id="accountRegenKeyForm" style="display: flex; flex-direction: column; gap: 14px; max-width: 440px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="regenConfirmPassword">Current Password to Confirm</label>
+                    <input type="password" id="regenConfirmPassword" name="current_password" class="form-input" placeholder="Enter current password" required>
+                </div>
+                <button type="submit" id="accountRegenKeyBtn" class="btn-outline" style="width: auto; padding: 10px 20px; font-weight: 600;">
+                    <span>Regenerate API Key</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Section 4: Global Session Management -->
+        <div class="bento-cell" style="padding: 32px; border-color: rgba(239, 68, 68, 0.2);">
+            <span class="bento-tag" style="margin-bottom: 16px; color: #f87171;">Session Revocation</span>
+            <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">Log Out Everywhere</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                Invalidates all active session cookies across all browsers and devices. You will be redirected to log in.
+            </p>
+
+            <form action="/dashboard/account/logout-all" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-outline" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171; padding: 10px 20px;">
+                    Log Out of All Devices
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</main>
+
+{% endblock %}
+
+{% block page_scripts %}
+<script nonce="{{ csp_nonce }}">
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById("toggleChangeEmailBtn");
+    const drawer = document.getElementById("changeEmailDrawer");
+    if (toggleBtn && drawer) {
+        toggleBtn.addEventListener("click", () => {
+            const opening = drawer.style.display === "none" || !drawer.style.display;
+            drawer.style.display = opening ? "block" : "none";
+            drawer.setAttribute("aria-hidden", String(!opening));
+            toggleBtn.setAttribute("aria-expanded", String(opening));
+            if (opening) drawer.querySelector('input[name="current_password"]')?.focus();
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && drawer.style.display !== "none") {
+                drawer.style.display = "none";
+                drawer.setAttribute("aria-hidden", "true");
+                toggleBtn.setAttribute("aria-expanded", "false");
+                toggleBtn.focus();
+            }
+        });
+    }
+
+    const regenForm = document.getElementById("accountRegenKeyForm");
+    if (regenForm) {
+        regenForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const pwInput = document.getElementById("regenConfirmPassword");
+            const pw = pwInput ? pwInput.value : '';
+            if (!pw) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            try {
+                const res = await fetch("/dashboard/account/regenerate-api-key", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: new URLSearchParams({ current_password: pw })
+                });
+                const data = await res.json();
+                if (res.ok && data.api_key) {
+                    const box = document.getElementById("accountNewKeyBox");
+                    const val = document.getElementById("accountNewKeyValue");
+                    if (box && val) {
+                        val.textContent = data.api_key;
+                        box.style.display = "block";
+                    }
+                    if (pwInput) pwInput.value = '';
+                    Snip.toast("New API key generated successfully!", "success");
+                } else {
+                    Snip.toast(data.error || "Failed to regenerate API key.", "error");
+                }
+            } catch (err) {
+                Snip.toast("Network error regenerating key.", "error");
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

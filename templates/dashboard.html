@@ -1,0 +1,1313 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Floating Dashboard Header -->
+<header class="nav-floating" style="max-width: 1280px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="{{ url_for('index') }}" class="logo-minimal">
+            <div class="brand-symbol">
+                <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="blade-top">
+                        <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                    </g>
+                    <g class="blade-bottom">
+                        <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                    </g>
+                    <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                    <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="brand-text">Snip</span><span class="dot"></span>
+        </a>
+        <span class="nav-divider" style="width: 1px; height: 18px; background: var(--border);"></span>
+        <span class="nav-section-title" style="font-size: 13px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Dashboard</span>
+    </div>
+
+    <!-- Desktop Navigation Actions (Screens > 768px) -->
+    <div class="nav-user-actions desktop-nav-actions" style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary);">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald);"></span>
+            <span class="user-badge-name">{{ session.get('username', 'Developer') }}</span>
+        </div>
+        <a href="{{ url_for('dashboard_account') }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; cursor: pointer; text-decoration: none;">Account</a>
+        <button type="button" id="openApiKeyModalBtn" class="btn-outline" style="padding: 6px 14px; font-size: 12px; cursor: pointer; background: transparent;">API Key</button>
+        <form action="{{ url_for('logout') }}" method="POST" style="margin: 0; display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-outline" style="padding: 6px 14px; font-size: 12px; cursor: pointer; background: transparent;">Log Out</button>
+        </form>
+    </div>
+
+    <!-- Mobile Navigation Actions Dropdown (Screens <= 768px) -->
+    <div class="mobile-nav-wrapper">
+        <button type="button" id="mobileMenuBtn" class="mobile-menu-trigger" aria-label="Open user menu" aria-expanded="false" aria-controls="mobileDropdownMenu">
+            <span class="user-status-dot"></span>
+            <span class="mobile-menu-username">{{ session.get('username', 'Developer') }}</span>
+            <svg class="mobile-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <div id="mobileDropdownMenu" class="mobile-nav-dropdown" style="display: none;" role="menu">
+            <div class="mobile-dropdown-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald);"></span>
+                    <span style="font-weight: 700; color: #fff; font-size: 13px;">{{ session.get('username', 'Developer') }}</span>
+                </div>
+                <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-emerald); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); padding: 2px 6px; border-radius: 4px; font-weight: 700;">Active</span>
+            </div>
+
+            <div class="mobile-dropdown-items">
+                <a href="{{ url_for('dashboard_account') }}" class="mobile-dropdown-item" role="menuitem">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Account Settings</span>
+                </a>
+                <button type="button" id="mobileOpenApiKeyBtn" class="mobile-dropdown-item" role="menuitem" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; font-family: inherit;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Developer API Key</span>
+                </button>
+            </div>
+
+            <div class="mobile-dropdown-footer">
+                <form action="{{ url_for('logout') }}" method="POST" style="margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="mobile-dropdown-logout" style="width: 100%; display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; font-family: inherit;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <span>Log Out</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- API Key Management Modal -->
+<div id="apiKeyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle" aria-hidden="true" style="display: none;">
+    <div class="modal-card" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3 id="apiKeyModalTitle" style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0;">Developer API Key</h3>
+            <button type="button" class="btn-action-icon close-api-key-modal-btn" aria-label="Close API key dialog">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div style="padding: 24px;">
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.6;">
+                Use your API key to authenticate programmatic requests with the <code style="font-family: var(--font-mono); color: #fff;">X-API-Key</code> header.
+            </p>
+            <div id="newKeyContainer" style="display: none; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--accent-emerald); border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--accent-emerald); font-weight: 700; margin-bottom: 6px;">New Key Generated</div>
+                <code id="newKeyValue" style="font-family: var(--font-mono); font-size: 13px; color: #fff; word-break: break-all;"></code>
+            </div>
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label class="form-label" for="dashboardApiKeyPassword">Current Password</label>
+                <input type="password" id="dashboardApiKeyPassword" class="form-input" autocomplete="current-password" placeholder="Confirm to generate a new key">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" id="doRegenerateKeyBtn" class="btn-primary" style="flex: 1; justify-content: center; padding: 10px;">
+                    <span id="regenBtnText">Generate New Key</span>
+                </button>
+                <button type="button" class="btn-outline close-api-key-modal-btn" style="padding: 10px 16px;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<main class="dashboard-main" style="max-width: 1280px; margin: 0 auto; padding: 130px 24px 100px;">
+    
+    <!-- Top Stat Banner with Live Graphs -->
+    <div class="dashboard-stats-grid">
+        
+        <!-- Card 1: Earnings / Balance -->
+        <div class="bento-cell" style="padding: 28px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                <span class="bento-tag" style="margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+                    Ad Balance
+                </span>
+                <span title="Monetization is currently in simulation mode. No real currency is charged or disbursed." style="cursor: help; margin-left: 8px; font-size: 10px; font-weight: 700; color: #feca57; background: rgba(254,202,87,0.1); border: 1px solid rgba(254,202,87,0.3); padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Demo / Simulated</span>
+                <span style="font-size: 11px; color: var(--accent-emerald); font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">+$0.02 / -$0.01</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
+                <span id="statEarnings" style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: {% if earnings >= 0 %}var(--accent-emerald){% else %}#ef4444{% endif %}; letter-spacing: -0.03em;">
+                    ${{ "%.2f"|format(earnings) }}
+                </span>
+                <span style="font-size: 13px; color: var(--text-muted);">USD Net</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary);">
+                Earn $0.02 on network ads • Run custom ads at $0.01/click
+            </p>
+            
+            <!-- Live Waveform -->
+            <svg viewBox="0 0 100 24" style="width: 100%; height: 36px; margin-top: 14px; overflow: visible;" preserveAspectRatio="none">
+                <path d="M0,20 Q15,4 30,16 T60,8 T90,14 L100,6" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </div>
+
+        <!-- Card 2: Active Links -->
+        <div class="bento-cell" style="padding: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                <span class="bento-tag" style="margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+                    Active Links
+                </span>
+                <span style="font-size: 11px; color: var(--text-muted);">Unlimited Tier</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
+                <span style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary); letter-spacing: -0.03em;">
+                    {{ links|length }}
+                </span>
+                <span style="font-size: 13px; color: var(--text-muted);">Short URLs</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary);">Active edge endpoints configured</p>
+            
+            <!-- Waveform -->
+            <svg viewBox="0 0 100 24" style="width: 100%; height: 36px; margin-top: 14px; overflow: visible;" preserveAspectRatio="none">
+                <path d="M0,18 Q20,6 40,14 T80,4 L100,10" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </div>
+
+        <!-- Card 3: Total Clicks & Telemetry -->
+        <div class="bento-cell" style="padding: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                <span class="bento-tag" style="margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Total Clicks
+                </span>
+                <span style="font-size: 11px; color: #f59e0b; font-weight: 700; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">Live Stream</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
+                <span id="statClicks" style="font-size: 38px; font-weight: 800; font-family: var(--font-mono); color: #f59e0b; letter-spacing: -0.03em;">
+                    {{ total_clicks }}
+                </span>
+                <span style="font-size: 13px; color: var(--text-muted);">Impressions</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary);">Real-time telemetry and edge routing</p>
+            
+            <!-- Waveform -->
+            <svg viewBox="0 0 100 24" style="width: 100%; height: 36px; margin-top: 14px; overflow: visible;" preserveAspectRatio="none">
+                <path d="M0,14 Q25,22 50,10 T80,18 L100,4" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </div>
+
+    </div>
+
+    <!-- Live Telemetry Visualizer Chart Widget -->
+    <div class="bento-cell" style="margin-bottom: 32px; padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-emerald); animation: pulseDot 2s infinite;"></span>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Real-Time Gateway Traffic Velocity</h3>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary);">Real-time routing telemetry updated on incoming requests</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-outline time-tab active" data-tab="live" style="font-size: 12px; padding: 6px 14px; background: rgba(255,255,255,0.08);">Live Feed</button>
+                <button class="btn-outline time-tab" data-tab="week" style="font-size: 12px; padding: 6px 14px;">7 Days</button>
+                <button class="btn-outline time-tab" data-tab="month" style="font-size: 12px; padding: 6px 14px;">30 Days</button>
+            </div>
+        </div>
+
+        <!-- Dynamic Animated SVG Chart -->
+        <div style="position: relative; width: 100%; height: 160px;">
+            <svg id="telemetryChart" viewBox="0 0 1000 160" preserveAspectRatio="none" style="width: 100%; height: 100%; overflow: visible;">
+                <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+                    </linearGradient>
+                </defs>
+                <!-- Grid Lines -->
+                <line x1="0" y1="40" x2="1000" y2="40" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4"/>
+                <line x1="0" y1="90" x2="1000" y2="90" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4"/>
+                <line x1="0" y1="140" x2="1000" y2="140" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4"/>
+                <!-- Graph Paths -->
+                <path id="chartArea" d="M0,130 Q150,60 300,90 T600,40 T850,70 L1000,30 L1000,160 L0,160 Z" fill="url(#chartGrad)"/>
+                <path id="chartLine" d="M0,130 Q150,60 300,90 T600,40 T850,70 L1000,30" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" style="filter: drop-shadow(0 0 10px rgba(255,255,255,0.6));"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Links Management Section -->
+    <div class="bento-cell" style="padding: 0; overflow: hidden;">
+        
+        <!-- Table Toolbar -->
+        <div class="dashboard-toolbar" style="display: flex; align-items: center; justify-content: space-between; padding: 24px 32px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h2 style="font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 2px;">Your Links</h2>
+                <p style="font-size: 13px; color: var(--text-secondary);">Manage short links, toggle ad monetization, and inspect click telemetry.</p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <!-- Server-Side Search & Sort Filter -->
+                <form method="GET" action="/dashboard" class="dashboard-search-form" style="display: flex; align-items: center; gap: 8px;">
+                    <div style="position: relative;">
+                        <input type="text" name="q" value="{{ q or '' }}" id="linkFilter" placeholder="Search links..." class="form-input" style="padding: 8px 14px 8px 32px; font-size: 13px; width: 190px; border-radius: var(--radius-sm);" aria-label="Search links">
+                        <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </div>
+                    <select name="sort" class="form-input" style="padding: 8px 10px; font-size: 12.5px; width: auto; border-radius: var(--radius-sm); cursor: pointer;" aria-label="Sort links">
+                        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+                        <option value="clicks" {% if sort == 'clicks' %}selected{% endif %}>Most Clicks</option>
+                        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    </select>
+                </form>
+
+                <!-- Create Link Toggle Button -->
+                <button id="toggleCreateDrawerBtn" class="btn-primary" style="padding: 8px 18px; font-size: 13px; border-radius: var(--radius-sm); width: auto;">
+                    <span>+ New Link</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Inline Link Creator Drawer -->
+        <div id="createDrawer" style="display: none; padding: 24px 32px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border);">
+            <form id="inlineShortenForm" style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="url" name="url" aria-label="Destination URL" placeholder="Paste destination URL (e.g. https://github.com/my-project)..." required class="form-input" style="flex: 2; min-width: 260px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer;">
+                    <input type="checkbox" name="ads_enabled" value="true" checked style="cursor: pointer;">
+                    <span>Monetize with Ads</span>
+                </label>
+                <select name="ad_type" aria-label="Ad type" class="form-input" style="width: auto; font-size: 12.5px; padding: 8px 12px; cursor: pointer;">
+                    <option value="network">Network Ads (Earn $0.02/click)</option>
+                    <option value="custom">Custom Ad (-$0.01/click)</option>
+                </select>
+                <button type="submit" class="btn-primary" style="width: auto; padding: 12px 24px;">Create Short URL</button>
+
+                <!-- Advanced Options Toggle -->
+                <div style="width: 100%; display: flex; justify-content: flex-start; margin-top: 2px;">
+                    <button type="button" id="dashAdvToggleBtn" aria-expanded="false" aria-controls="dashAdvSettingsRow" style="background: none; border: none; color: var(--text-muted); font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; transition: color 0.2s ease;">
+                        <span>⚙ Advanced Settings (Custom Alias, Expiry)</span>
+                        <svg class="dash-adv-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                </div>
+
+                <!-- Advanced Settings Inputs -->
+                <div id="dashAdvSettingsRow" style="display: none; width: 100%; gap: 14px; margin-top: 4px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 220px;">
+                        <input type="text" id="dashAliasInput" name="alias" class="form-input" placeholder="Custom alias (optional)" aria-label="Custom alias (optional)" style="padding: 10px 14px; font-size: 13px; font-family: var(--font-mono); width: 100%;">
+                    </div>
+                    <div style="flex: 1; min-width: 220px;">
+                        <input type="text" id="dashExpiryInput" name="expires_in" class="form-input" placeholder="Expiry (e.g. 24h, 7d)" aria-label="Link expiry (e.g. 24h, 7d)" style="padding: 10px 14px; font-size: 13px; width: 100%;">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Responsive Table Container -->
+        <div class="table-responsive-wrapper">
+            <!-- Table Columns Header -->
+            <div class="table-header-grid">
+                <span>Short Link</span>
+                <span>Destination</span>
+                <span>Clicks</span>
+                <span>Monetization</span>
+                <span>Safety</span>
+                <span style="text-align: right;">Actions</span>
+            </div>
+
+            <!-- Table Rows -->
+            <div id="linksTableBody">
+                {% if links|length == 0 %}
+                    <div class="dashboard-empty-state" style="text-align: center; padding: 80px 40px; min-width: 820px;">
+                        <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+                        </div>
+                        <p style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">No links created yet</p>
+                        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">Shorten a URL to start tracking click metrics and earning revenue.</p>
+                        <button id="toggleCreateDrawerBtnEmpty" class="btn-primary" style="width: auto; padding: 10px 24px; border-radius: var(--radius-sm);">Create Your First Link</button>
+                    </div>
+                {% else %}
+                    {% for link in links %}
+                    <div class="table-row link-item-row table-row-grid" 
+                         data-search="{{ link.code }} {{ link.original_url }}" 
+                         data-preview="/preview/{{ link.code }}.jpg" 
+                         data-code="{{ link.code }}"
+                         data-expiry="{{ link.expires_at or '' }}"
+                         data-ad-type="{{ link.ad_type or 'network' }}"
+                         data-custom-url="{{ (link.custom_ad_url or '') | e }}"
+                         data-custom-title="{{ (link.custom_ad_title or '') | e }}"
+                         data-custom-desc="{{ (link.custom_ad_desc or '') | e }}"
+                         data-custom-media="{{ (link.custom_ad_media_type or 'webpage') | e }}">
+                    
+                    <!-- Short URL with 1-click Copy & Expiry Badge -->
+                    <div data-label="Short link" style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                            <span class="mobile-cell-label">Short link</span>
+                            <button class="btn-action-icon copy-link-btn" data-url="{{ request.host_url }}{{ link.code }}" title="Copy Short Link" aria-label="Copy short link /{{ link.code }}">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            </button>
+                            <a href="/{{ link.code }}" target="_blank" rel="noopener noreferrer" style="font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: #ffffff; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Open short link">
+                                /{{ link.code }}
+                            </a>
+                        </div>
+                        {% if link.expires_at %}
+                        <div class="link-expiry-badge" id="linkExpiry-{{ link.code }}" data-expiry="{{ link.expires_at }}" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; margin-left: 31px; color: #feca57; font-weight: 500;" title="Expires at {{ link.expires_at }} UTC">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span class="expiry-label">Expires: {{ link.expires_at }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Destination (Hover trigger for website snapshot preview) -->
+                    <div class="destination-preview-trigger" data-label="Destination" style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="Hover to preview: {{ link.original_url }}">
+                        <span class="mobile-cell-label">Destination</span>
+                        {{ link.original_url }}
+                    </div>
+
+                    <!-- Clicks -->
+                    <div id="linkClicks-{{ link.code }}" data-label="Clicks" style="font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary);">
+                        <span class="mobile-cell-label">Clicks</span>
+                        {{ link.click_count }}
+                    </div>
+
+                    <!-- Monetization / Ads Allowed Switch -->
+                    <div data-label="Monetization" style="display: flex; align-items: center; gap: 8px;">
+                        <span class="mobile-cell-label">Monetization</span>
+                        <label class="switch-toggle" title="Toggle Ads Monetization">
+                            <input type="checkbox" class="toggle-ads-input" data-code="{{ link.code }}" aria-label="Enable ad monetization for /{{ link.code }}" {% if link.ads_enabled %}checked{% endif %}>
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span id="adPill-{{ link.code }}" 
+                              class="pill open-ad-config-btn {% if link.ads_enabled %}{% if link.ad_type == 'custom' %}pill-ad-custom{% else %}pill-ads-on{% endif %}{% else %}pill-ads-off{% endif %}" 
+                              style="cursor: pointer; font-size: 11px; padding: 3px 8px;"
+                              title="Click to configure ad settings">
+                            {% if link.ads_enabled %}
+                                {% if link.ad_type == 'custom' %}Custom (-$0.01){% else %}Network (+$0.02){% endif %}
+                            {% else %}
+                                Off
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Safety Status -->
+                    <div data-label="Safety">
+                        <span class="mobile-cell-label">Safety</span>
+                        <span id="linkSafety-{{ link.code }}">
+                        {% if link.safety_status == 'clean' %}
+                            <span class="pill pill-clean" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Clean
+                            </span>
+                        {% elif link.safety_status == 'malicious' %}
+                            <span class="pill pill-flagged" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Flagged
+                            </span>
+                        {% elif link.safety_status == 'unchecked' %}
+                            <span class="pill" style="background: rgba(160, 160, 184, 0.1); color: #a0a0b8; border: 1px solid rgba(160, 160, 184, 0.2); display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                Unchecked
+                            </span>
+                        {% else %}
+                            <span class="pill" style="background: rgba(254, 202, 87, 0.1); color: #feca57; border: 1px solid rgba(254, 202, 87, 0.2); display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Checking
+                            </span>
+                        {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Actions: Configure Ad, QR Studio & Sleek Trash Delete -->
+                    <div data-label="Actions" style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                        <span class="mobile-cell-label">Actions</span>
+                        <button class="btn-action-icon open-ad-config-btn" title="Configure Ad Campaign (Network or Custom)" aria-label="Configure ads for /{{ link.code }}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+                        </button>
+                        <a href="{{ url_for('dashboard_qr', code=link.code) }}" class="btn-action-icon" title="View QR Studio" aria-label="Open QR Studio for /{{ link.code }}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="19" y="19" width="2" height="2"/></svg>
+                        </a>
+                        <button class="btn-action-icon btn-action-delete delete-link-btn" data-code="{{ link.code }}" title="Delete Link" aria-label="Delete link /{{ link.code }}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                        </button>
+                    </div>
+
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        </div>
+
+        {% if total_pages and total_pages > 1 %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; gap: 12px;">
+            <span>Showing page {{ page }} of {{ total_pages }} ({{ total_links }} total links)</span>
+            <div style="display: flex; gap: 8px;">
+                {% if page > 1 %}
+                    <a href="{{ url_for('dashboard', page=page-1, q=q, sort=sort) }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">← Previous</a>
+                {% endif %}
+                {% if page < total_pages %}
+                    <a href="{{ url_for('dashboard', page=page+1, q=q, sort=sort) }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+
+<!-- Floating Website Preview Image Container -->
+<img id="globalPreview" class="global-swipeimage" src="" alt="Preview">
+
+<!-- Ad Campaign Configuration Modal -->
+<div id="adConfigModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="adConfigModalTitle" aria-hidden="true" style="display: none;">
+    <div class="modal-card" style="max-width: 560px;">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="modal-icon-badge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2M12 16v2"/></svg>
+                </div>
+                <div>
+                    <h3 id="adConfigModalTitle" style="font-size: 16.5px; font-weight: 800; color: #fff; margin: 0;">Ad Campaign Settings</h3>
+                    <p id="modalLinkCode" style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0; font-family: var(--font-mono);"></p>
+                </div>
+            </div>
+            <button type="button" class="btn-action-icon close-ad-config-btn" aria-label="Close ad campaign dialog">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <form id="adConfigForm" style="padding: 24px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" id="configCode" name="code">
+
+            <!-- Ad Mode Select Cards -->
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px;">Choose Ad Delivery Engine</div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <!-- Mode 1: Network Ads -->
+                <label id="labelNetworkAd" class="ad-mode-option selected" style="cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--accent-emerald); display: block;">
+                    <input type="radio" name="ad_type" value="network" checked class="ad-type-radio" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #fff;">Network Ads</span>
+                        <span style="font-size: 10.5px; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">Earn +$0.02</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0;">Monetize with Google Network ads. You get paid for every transit.</p>
+                </label>
+
+                <!-- Mode 2: Custom Promotion -->
+                <label id="labelCustomAd" class="ad-mode-option" style="cursor: pointer; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); display: block;">
+                    <input type="radio" name="ad_type" value="custom" class="ad-type-radio" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #fff;">My Custom Ad</span>
+                        <span style="font-size: 10.5px; font-weight: 700; color: #c084fc; background: rgba(168, 85, 247, 0.12); padding: 2px 6px; border-radius: 4px;">Cost -$0.01</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0;">Showcase your own webpage, video, or link on transit.</p>
+                </label>
+            </div>
+
+            <!-- Custom Ad Fields (Shown when ad_type === 'custom') -->
+            <div id="customAdFields" style="display: none; flex-direction: column; gap: 14px; margin-bottom: 20px; padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                <div>
+                    <span id="customAdFormatLabel" style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Ad Format</span>
+                    <div role="group" aria-labelledby="customAdFormatLabel" style="display: flex; gap: 14px;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
+                            <input type="radio" name="custom_ad_media_type" value="webpage" checked class="custom-media-radio"> Website Window (Interactive Embed)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
+                            <input type="radio" name="custom_ad_media_type" value="video" class="custom-media-radio"> YouTube Video
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="configAdTitle" style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Campaign Title / Headline</label>
+                    <input type="text" id="configAdTitle" name="custom_ad_title" placeholder="e.g. Try our modern developer tool" class="form-input config-preview-input" style="font-size: 13px; padding: 8px 12px;">
+                </div>
+
+                <div>
+                    <label id="configAdUrlLabel" for="configAdUrl" style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Website Target URL <span style="color: var(--accent); font-weight: 400;">*</span></label>
+                    <input type="url" id="configAdUrl" name="custom_ad_url" placeholder="https://myproduct.com" class="form-input config-preview-input" style="font-size: 13px; padding: 8px 12px;">
+                </div>
+
+                <div>
+                    <label for="configAdDesc" style="display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Description / Call-to-Action</label>
+                    <textarea id="configAdDesc" name="custom_ad_desc" placeholder="Brief pitch describing your product or video..." class="form-input config-preview-input" rows="2" style="font-size: 13px; padding: 8px 12px;"></textarea>
+                </div>
+
+                <!-- Mini Live Preview -->
+                <div style="margin-top: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);">Live Transit Preview</span>
+                        <span id="previewFormatBadge" style="font-size: 9.5px; color: var(--accent-emerald); font-weight: 600;">Interactive Website Window</span>
+                    </div>
+                    <div id="customAdPreviewBox" class="mini-browser-preview-box">
+                        <div class="mini-browser-header">
+                            <div class="window-dots">
+                                <span class="dot-red"></span>
+                                <span class="dot-yellow"></span>
+                                <span class="dot-green"></span>
+                            </div>
+                            <div class="mini-browser-address">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <span id="miniBrowserUrlText">https://example.com</span>
+                            </div>
+                            <div class="mini-browser-actions">
+                                <span style="font-size: 9px; color: var(--text-muted); padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.06);">Mini Window</span>
+                            </div>
+                        </div>
+                        <div class="mini-browser-viewport">
+                            <iframe id="miniBrowserIframe" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy"></iframe>
+                            <div id="videoPreviewWrap" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: #000; color: var(--text-secondary); font-size: 12px; gap: 8px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: #ef4444;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                <span>YouTube Video Stream Preview</span>
+                            </div>
+                        </div>
+                        <div class="mini-browser-footer">
+                            <div id="previewTitle" style="font-size: 12.5px; font-weight: 700; color: #fff; margin-bottom: 2px;">Headline Preview</div>
+                            <div id="previewDesc" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">Pitch preview will appear here...</div>
+                            <span style="display: inline-block; font-size: 10.5px; font-weight: 700; background: #fff; color: #000; padding: 3px 8px; border-radius: 5px;">Visit Website ↗</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn-outline close-ad-config-btn" style="padding: 9px 16px; font-size: 12.5px;">Cancel</button>
+                <button type="submit" id="btnSaveAdConfig" class="btn-primary" style="width: auto; padding: 9px 20px; font-size: 12.5px;">Save Settings</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_scripts %}
+<script nonce="{{ csp_nonce }}">
+// 1. Toggle Quick Creation Drawer
+function toggleCreateDrawer() {
+    const drawer = document.getElementById('createDrawer');
+    if (drawer.style.display === 'none' || !drawer.style.display) {
+        drawer.style.display = 'block';
+        drawer.querySelector('input[name="url"]').focus();
+    } else {
+        drawer.style.display = 'none';
+    }
+}
+
+// 2. Inline Shorten AJAX Handler
+const inlineForm = document.getElementById('inlineShortenForm');
+if (inlineForm) {
+    inlineForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = inlineForm.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = 'Creating...';
+
+        const formData = new FormData(inlineForm);
+        try {
+            const res = await fetch('/shorten', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.short_url) {
+                Snip.toast("Short URL created successfully!", "success");
+                setTimeout(() => { location.reload(); }, 600);
+            } else {
+                Snip.toast(data.error || 'Failed to shorten URL.', 'error');
+            }
+        } catch (err) {
+            Snip.toast('Network error creating link.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Create Short URL';
+        }
+    });
+}
+
+// 2b. Toggle Dashboard Advanced Settings in Link Drawer
+const dashAdvBtn = document.getElementById('dashAdvToggleBtn');
+const dashAdvRow = document.getElementById('dashAdvSettingsRow');
+if (dashAdvBtn && dashAdvRow) {
+    dashAdvBtn.addEventListener('click', () => {
+        const isHidden = dashAdvRow.style.display === 'none';
+        dashAdvRow.style.display = isHidden ? 'flex' : 'none';
+        dashAdvBtn.setAttribute('aria-expanded', String(isHidden));
+        dashAdvBtn.querySelector('span').innerText = isHidden
+            ? '▲ Close Advanced Settings'
+            : '⚙ Advanced Settings (Custom Alias, Expiry)';
+        const chevron = dashAdvBtn.querySelector('.dash-adv-chevron');
+        if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : 'none';
+    });
+}
+
+// 2c. Dynamic Link Expiry Real-Time Countdown
+function updateExpiryBadges() {
+    const badges = document.querySelectorAll('.link-expiry-badge[data-expiry]');
+    const now = Date.now();
+    badges.forEach(badge => {
+        const rawExpiry = badge.getAttribute('data-expiry');
+        if (!rawExpiry) return;
+        const normalized = rawExpiry.includes('T') ? rawExpiry : rawExpiry.replace(' ', 'T') + 'Z';
+        const expTime = new Date(normalized).getTime();
+        const diffMs = expTime - now;
+        const labelEl = badge.querySelector('.expiry-label') || badge;
+        
+        if (diffMs <= 0) {
+            badge.style.color = '#ef4444';
+            labelEl.innerText = 'Expired';
+            badge.title = 'Expired at ' + rawExpiry + ' UTC';
+        } else {
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHr = Math.floor(diffMin / 60);
+            const diffDays = Math.floor(diffHr / 24);
+            
+            let timeStr = '';
+            if (diffDays > 0) {
+                timeStr = `${diffDays}d ${diffHr % 24}h left`;
+            } else if (diffHr > 0) {
+                timeStr = `${diffHr}h ${diffMin % 60}m left`;
+            } else if (diffMin > 0) {
+                timeStr = `${diffMin}m ${diffSec % 60}s left`;
+            } else {
+                timeStr = `${diffSec}s left`;
+            }
+            badge.style.color = diffHr < 1 ? '#f87171' : '#feca57';
+            labelEl.innerText = 'Expires in ' + timeStr;
+            badge.title = 'Expires at ' + rawExpiry + ' UTC';
+        }
+    });
+}
+
+// 3. 1-Click Copy with Tooltip Feedback
+async function copyLink(url, btn) {
+    try {
+        await navigator.clipboard.writeText(url);
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+        Snip.toast("Copied to clipboard!", "success");
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    } catch (e) {
+        Snip.toast("Copy link manually: " + url, "info");
+    }
+}
+
+// 4. Real-time Links Filter
+function filterLinks(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('.link-item-row');
+    rows.forEach(row => {
+        const text = row.getAttribute('data-search').toLowerCase();
+        row.style.display = text.includes(q) ? 'grid' : 'none';
+    });
+}
+
+// 5. Interactive Ads Allowed / Disallowed Toggle
+async function toggleAds(code, checkbox) {
+    const pill = document.getElementById('adPill-' + code);
+    const row = checkbox.closest('.link-item-row');
+    const adType = row ? (row.dataset.adType || 'network') : 'network';
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const res = await fetch('/dashboard/toggle-ads/' + code, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            if (data.ads_enabled) {
+                if (adType === 'custom') {
+                    pill.className = 'pill pill-ad-custom';
+                    pill.innerText = 'Custom (-$0.01)';
+                } else {
+                    pill.className = 'pill pill-ads-on';
+                    pill.innerText = 'Network (+$0.02)';
+                }
+            } else {
+                pill.className = 'pill pill-ads-off';
+                pill.innerText = 'Off';
+            }
+            Snip.toast('Ads status updated successfully.', 'success');
+        } else {
+            checkbox.checked = !checkbox.checked;
+            Snip.toast(data.error || 'Failed to update ads status.', 'error');
+        }
+    } catch (e) {
+        checkbox.checked = !checkbox.checked;
+        Snip.toast('Network error updating ads status.', 'error');
+    }
+}
+
+// 5b. Ad Configuration Modal Handlers
+function openAdConfigModalFromRow(trigger) {
+    const row = trigger.closest('.link-item-row');
+    if (!row) return;
+    const code = row.dataset.code;
+    const adType = row.dataset.adType || 'network';
+    const customUrl = row.dataset.customUrl || '';
+    const customTitle = row.dataset.customTitle || '';
+    const customDesc = row.dataset.customDesc || '';
+    let customMedia = row.dataset.customMedia || 'webpage';
+    if (customMedia === 'link') customMedia = 'webpage';
+
+    document.getElementById('configCode').value = code;
+    document.getElementById('modalLinkCode').innerText = '/' + code;
+    document.getElementById('configAdTitle').value = customTitle;
+    document.getElementById('configAdUrl').value = customUrl;
+    document.getElementById('configAdDesc').value = customDesc;
+
+    const mediaRadio = document.querySelector(`input[name="custom_ad_media_type"][value="${customMedia}"]`);
+    if (mediaRadio) mediaRadio.checked = true;
+
+    switchAdMode(adType);
+    updateCustomPreview();
+
+    Snip.openModal(document.getElementById('adConfigModal'), { trigger, focusSelector: 'input[name="ad_type"]' });
+}
+
+function closeAdConfigModal() {
+    Snip.closeModal(document.getElementById('adConfigModal'));
+}
+
+function openApiKeyModal(trigger) {
+    const newKeyContainer = document.getElementById('newKeyContainer');
+    const passwordInput = document.getElementById('dashboardApiKeyPassword');
+    if (newKeyContainer) newKeyContainer.style.display = 'none';
+    if (passwordInput) passwordInput.value = '';
+    Snip.openModal(document.getElementById('apiKeyModal'), { trigger, focusSelector: '#dashboardApiKeyPassword' });
+}
+
+function closeApiKeyModal() {
+    Snip.closeModal(document.getElementById('apiKeyModal'));
+}
+
+async function regenerateApiKey() {
+    const passwordInput = document.getElementById('dashboardApiKeyPassword');
+    const button = document.getElementById('doRegenerateKeyBtn');
+    const newKeyContainer = document.getElementById('newKeyContainer');
+    const newKeyValue = document.getElementById('newKeyValue');
+    const currentPassword = passwordInput?.value || '';
+    if (!currentPassword) {
+        Snip.toast('Enter your current password to generate a new API key.', 'error');
+        passwordInput?.focus();
+        return;
+    }
+
+    button.disabled = true;
+    const originalLabel = button.textContent;
+    button.textContent = 'Generating...';
+    try {
+        const formData = new FormData();
+        formData.append('current_password', currentPassword);
+        formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '');
+        const response = await fetch('/dashboard/account/regenerate-api-key', { method: 'POST', body: formData });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Unable to generate an API key.');
+        newKeyValue.textContent = data.api_key;
+        newKeyContainer.style.display = 'block';
+        passwordInput.value = '';
+        Snip.toast('New API key generated. Save it now.', 'success');
+    } catch (error) {
+        Snip.toast(error.message || 'Unable to generate an API key.', 'error');
+    } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
+    }
+}
+
+function switchAdMode(mode) {
+    const labelNet = document.getElementById('labelNetworkAd');
+    const labelCust = document.getElementById('labelCustomAd');
+    const customFields = document.getElementById('customAdFields');
+    const radioNet = document.querySelector('input[name="ad_type"][value="network"]');
+    const radioCust = document.querySelector('input[name="ad_type"][value="custom"]');
+
+    if (mode === 'custom') {
+        if (radioCust) radioCust.checked = true;
+        labelCust.classList.add('selected');
+        labelCust.style.borderColor = '#a855f7';
+        labelNet.classList.remove('selected');
+        labelNet.style.borderColor = 'var(--border)';
+        customFields.style.display = 'flex';
+    } else {
+        if (radioNet) radioNet.checked = true;
+        labelNet.classList.add('selected');
+        labelNet.style.borderColor = 'var(--accent-emerald)';
+        labelCust.classList.remove('selected');
+        labelCust.style.borderColor = 'var(--border)';
+        customFields.style.display = 'none';
+    }
+}
+
+function updateCustomPreview() {
+    const title = document.getElementById('configAdTitle').value.trim();
+    const desc = document.getElementById('configAdDesc').value.trim();
+    const url = document.getElementById('configAdUrl').value.trim();
+    const mediaRadio = document.querySelector('input[name="custom_ad_media_type"]:checked');
+    const mediaType = mediaRadio ? mediaRadio.value : 'webpage';
+
+    const pTitle = document.getElementById('previewTitle');
+    const pDesc = document.getElementById('previewDesc');
+    const pUrlText = document.getElementById('miniBrowserUrlText');
+    const pIframe = document.getElementById('miniBrowserIframe');
+    const pVideo = document.getElementById('videoPreviewWrap');
+    const pFormatBadge = document.getElementById('previewFormatBadge');
+    const urlLabel = document.getElementById('configAdUrlLabel');
+    const urlInput = document.getElementById('configAdUrl');
+
+    if (pTitle) pTitle.innerText = title || 'Headline Preview';
+    if (pDesc) pDesc.innerText = desc || 'Pitch preview will appear here...';
+
+    if (mediaType === 'video') {
+        if (pFormatBadge) pFormatBadge.innerText = 'YouTube Video Embed';
+        if (urlLabel) urlLabel.innerHTML = 'YouTube Video URL <span style="color: var(--accent); font-weight: 400;">*</span>';
+        if (urlInput) urlInput.placeholder = 'https://www.youtube.com/watch?v=...';
+        if (pIframe) pIframe.style.display = 'none';
+        if (pVideo) pVideo.style.display = 'flex';
+        if (pUrlText) pUrlText.innerText = url || 'https://youtube.com';
+    } else {
+        if (pFormatBadge) pFormatBadge.innerText = 'Interactive Website Window';
+        if (urlLabel) urlLabel.innerHTML = 'Website Target URL <span style="color: var(--accent); font-weight: 400;">*</span>';
+        if (urlInput) urlInput.placeholder = 'https://myproduct.com';
+        if (pVideo) pVideo.style.display = 'none';
+        if (pIframe) {
+            pIframe.style.display = 'block';
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                if (pIframe.dataset.lastUrl !== url) {
+                    pIframe.dataset.lastUrl = url;
+                    pIframe.src = url;
+                }
+            } else {
+                pIframe.src = 'about:blank';
+                pIframe.dataset.lastUrl = '';
+            }
+        }
+        if (pUrlText) {
+            try {
+                const parsed = new URL(url.startsWith('http') ? url : 'https://' + (url || 'example.com'));
+                pUrlText.innerText = parsed.origin;
+            } catch(e) {
+                pUrlText.innerText = url || 'https://example.com';
+            }
+        }
+    }
+}
+
+const adConfigForm = document.getElementById('adConfigForm');
+if (adConfigForm) {
+    adConfigForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('configCode').value;
+        const btn = document.getElementById('btnSaveAdConfig');
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+
+        const formData = new FormData(adConfigForm);
+        try {
+            const res = await fetch('/dashboard/configure-ad/' + code, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const row = document.querySelector(`.link-item-row[data-code="${code}"]`);
+                if (row) {
+                    row.dataset.adType = data.ad_type;
+                    row.dataset.customUrl = data.custom_ad_url || '';
+                    row.dataset.customTitle = data.custom_ad_title || '';
+                    row.dataset.customDesc = data.custom_ad_desc || '';
+                    row.dataset.customMedia = data.custom_ad_media_type || 'webpage';
+
+                    const pill = document.getElementById('adPill-' + code);
+                    const checkbox = row.querySelector('.switch-toggle input[type="checkbox"]');
+                    if (checkbox) checkbox.checked = true;
+
+                    if (pill) {
+                        if (data.ad_type === 'custom') {
+                            pill.className = 'pill pill-ad-custom';
+                            pill.innerText = 'Custom (-$0.01)';
+                        } else {
+                            pill.className = 'pill pill-ads-on';
+                            pill.innerText = 'Network (+$0.02)';
+                        }
+                    }
+                }
+                closeAdConfigModal();
+                Snip.toast('Ad campaign settings updated!', 'success');
+            } else {
+                Snip.toast(data.error || 'Failed to save configuration.', 'error');
+            }
+        } catch (err) {
+            Snip.toast('Error updating ad campaign settings.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Save Settings';
+        }
+    });
+}
+
+
+// 6. Sleek Delete Functionality with Accessible Modal
+async function deleteLink(code, btn) {
+    const confirmed = await Snip.confirm({
+        title: "Delete Short Link?",
+        message: `Are you sure you want to delete /${code}? This will permanently remove its redirect and click history.`,
+        confirmText: "Delete Link",
+        danger: true
+    });
+    if (!confirmed) return;
+    
+    const row = btn.closest('.table-row');
+    row.style.opacity = '0.3';
+    row.style.pointerEvents = 'none';
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const res = await fetch('/dashboard/delete/' + code, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        if (res.ok) {
+            Snip.toast("Link deleted successfully.", "success");
+            row.style.transition = 'all 0.3s ease';
+            row.style.height = '0px';
+            row.style.padding = '0px';
+            row.style.overflow = 'hidden';
+            setTimeout(() => { row.remove(); }, 350);
+        } else {
+            const data = await res.json();
+            Snip.toast(data.error || 'Failed to delete.', 'error');
+            row.style.opacity = '1';
+            row.style.pointerEvents = 'auto';
+        }
+    } catch (e) {
+        Snip.toast('Error connecting to server.', 'error');
+        row.style.opacity = '1';
+        row.style.pointerEvents = 'auto';
+    }
+}
+
+// 7. Dynamic Telemetry Graph Data Morphing
+function switchGraph(range, btn) {
+    document.querySelectorAll('.time-tab').forEach(b => b.style.background = 'transparent');
+    btn.style.background = 'rgba(255,255,255,0.08)';
+
+    const chartLine = document.getElementById('chartLine');
+    const chartArea = document.getElementById('chartArea');
+    if (!chartLine || !chartArea) return;
+
+    let lineD, areaD;
+    if (range === 'live') {
+        lineD = "M0,130 Q150,60 300,90 T600,40 T850,70 L1000,30";
+        areaD = "M0,130 Q150,60 300,90 T600,40 T850,70 L1000,30 L1000,160 L0,160 Z";
+    } else if (range === 'week') {
+        lineD = "M0,110 Q200,30 400,75 T700,20 T900,50 L1000,15";
+        areaD = "M0,110 Q200,30 400,75 T700,20 T900,50 L1000,15 L1000,160 L0,160 Z";
+    } else {
+        lineD = "M0,90 Q250,110 500,40 T750,60 T900,25 L1000,10";
+        areaD = "M0,90 Q250,110 500,40 T750,60 T900,25 L1000,10 L1000,160 L0,160 Z";
+    }
+
+    if (window.gsap) {
+        gsap.to(chartLine, { attr: { d: lineD }, duration: 0.8, ease: "power2.out" });
+        gsap.to(chartArea, { attr: { d: areaD }, duration: 0.8, ease: "power2.out" });
+    } else {
+        chartLine.setAttribute('d', lineD);
+        chartArea.setAttribute('d', areaD);
+    }
+}
+
+// 8. GSAP Hover Floating Snapshot Preview
+const globalFrame = document.getElementById("globalPreview");
+if (globalFrame && window.gsap) {
+    gsap.set(globalFrame, { yPercent: -50, xPercent: -50 });
+
+    let firstEnter;
+    const setX = gsap.quickTo(globalFrame, "x", { duration: 0.35, ease: "power3" });
+    const setY = gsap.quickTo(globalFrame, "y", { duration: 0.35, ease: "power3" });
+
+    const align = (e) => {
+        if (firstEnter) {
+            setX(e.clientX, e.clientX); 
+            setY(e.clientY, e.clientY);
+            firstEnter = false;
+        } else {
+            setX(e.clientX);
+            setY(e.clientY);
+        }
+    };
+
+    const startFollow = () => document.addEventListener("mousemove", align);
+    const stopFollow = () => document.removeEventListener("mousemove", align);
+    const fade = gsap.to(globalFrame, {
+        autoAlpha: 1,
+        ease: "none",
+        paused: true,
+        duration: 0.15,
+        onReverseComplete: stopFollow
+    });
+
+    // 8b. Hover preview only triggers when hovering over the Destination cell
+    gsap.utils.toArray(".destination-preview-trigger").forEach((el) => {
+        el.addEventListener("mouseenter", (e) => {
+            const row = el.closest('.table-row');
+            let previewUrl = row ? row.getAttribute("data-preview") : null;
+            if (previewUrl) {
+                previewUrl = previewUrl + "?t=" + new Date().getTime();
+                globalFrame.src = previewUrl;
+                firstEnter = true;
+                fade.play();
+                startFollow();
+                align(e);
+            }
+        });
+
+        el.addEventListener("mouseleave", () => {
+            fade.reverse();
+        });
+    });
+}
+
+// 9. Real-time Live Telemetry Poller (Updates dashboard with each click without page reload)
+let lastKnownEarnings = {{ earnings|tojson }};
+let lastKnownClicks = {{ total_clicks|tojson }};
+
+let lastPollTime = Math.floor(Date.now() / 1000) - 60; // start with last minute
+
+async function pollLiveTelemetry() {
+    try {
+        const res = await fetch(`/dashboard/live-stats?since=${lastPollTime}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        lastPollTime = Math.floor(Date.now() / 1000);
+
+        // Update Total Clicks
+        const clicksEl = document.getElementById('statClicks');
+        if (clicksEl && data.total_clicks !== lastKnownClicks) {
+            lastKnownClicks = data.total_clicks;
+            clicksEl.innerText = data.total_clicks;
+            if (window.gsap) {
+                gsap.fromTo(clicksEl, { scale: 1.22, color: '#10b981' }, { scale: 1, color: '#f59e0b', duration: 0.6, ease: "back.out(2)" });
+            }
+        }
+
+        // Update Ad Balance
+        const earnEl = document.getElementById('statEarnings');
+        if (earnEl && data.earnings !== lastKnownEarnings) {
+            lastKnownEarnings = data.earnings;
+            earnEl.innerText = '$' + data.earnings_formatted;
+            earnEl.style.color = data.earnings >= 0 ? 'var(--accent-emerald)' : '#ef4444';
+            if (window.gsap) {
+                gsap.fromTo(earnEl, { scale: 1.22 }, { scale: 1, duration: 0.6, ease: "back.out(2)" });
+            }
+        }
+
+        // Update per-link click counts, safety status, and expiry in the table
+        if (Array.isArray(data.links)) {
+            data.links.forEach(l => {
+                const cell = document.getElementById('linkClicks-' + l.code);
+                if (cell && cell.innerText.trim() !== String(l.clicks)) {
+                    cell.innerText = l.clicks;
+                    if (window.gsap) {
+                        gsap.fromTo(cell, { color: 'var(--accent-emerald)', scale: 1.25 }, { color: 'var(--text-primary)', scale: 1, duration: 0.5 });
+                    }
+                }
+                const safetyEl = document.getElementById('linkSafety-' + l.code);
+                if (safetyEl && l.safety_status) {
+                    if (l.safety_status === 'clean' && !safetyEl.innerText.includes('Clean')) {
+                        safetyEl.innerHTML = '<span class="pill pill-clean" style="display: inline-flex; align-items: center; gap: 4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Clean</span>';
+                        if (window.gsap) gsap.fromTo(safetyEl, { opacity: 0.4, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4 });
+                    } else if (l.safety_status === 'malicious' && !safetyEl.innerText.includes('Flagged')) {
+                        safetyEl.innerHTML = '<span class="pill pill-flagged" style="display: inline-flex; align-items: center; gap: 4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Flagged</span>';
+                        if (window.gsap) gsap.fromTo(safetyEl, { opacity: 0.4, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4 });
+                    } else if (l.safety_status === 'unchecked' && !safetyEl.innerText.includes('Unchecked')) {
+                        safetyEl.innerHTML = '<span class="pill" style="background: rgba(160, 160, 184, 0.1); color: #a0a0b8; border: 1px solid rgba(160, 160, 184, 0.2); display: inline-flex; align-items: center; gap: 4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Unchecked</span>';
+                    }
+                }
+                if (l.expires_at) {
+                    let badge = document.getElementById('linkExpiry-' + l.code);
+                    if (badge) {
+                        badge.setAttribute('data-expiry', l.expires_at);
+                    } else {
+                        const row = document.querySelector(`.link-item-row[data-code="${l.code}"] div[data-label="Short link"]`);
+                        if (row) {
+                            const newBadge = document.createElement('div');
+                            newBadge.className = 'link-expiry-badge';
+                            newBadge.id = 'linkExpiry-' + l.code;
+                            newBadge.setAttribute('data-expiry', l.expires_at);
+                            newBadge.style.cssText = 'display: inline-flex; align-items: center; gap: 4px; font-size: 11px; margin-left: 31px; color: #feca57; font-weight: 500;';
+                            newBadge.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="expiry-label">Expires: ${l.expires_at}</span>`;
+                            row.appendChild(newBadge);
+                        }
+                    }
+                }
+            });
+            updateExpiryBadges();
+        }
+    } catch (e) {
+        // Silently catch background poll network errors
+    }
+}
+
+// Smart Live Telemetry Poller (pauses when browser tab is inactive to conserve battery and bandwidth)
+let pollIntervalId = null;
+
+function startPolling() {
+    if (!pollIntervalId) {
+        pollIntervalId = setInterval(pollLiveTelemetry, 20000);
+    }
+}
+
+function stopPolling() {
+    if (pollIntervalId) {
+        clearInterval(pollIntervalId);
+        pollIntervalId = null;
+    }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        pollLiveTelemetry();
+        startPolling();
+    }
+});
+
+startPolling();
+
+// ── Event Listener Wiring for Strict Nonce CSP ─────────────
+document.addEventListener("DOMContentLoaded", () => {
+
+    // Mobile Navigation Dropdown Menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileDropdownMenu = document.getElementById('mobileDropdownMenu');
+
+    function toggleMobileMenu() {
+        if (!mobileDropdownMenu) return;
+        const isOpen = mobileMenuBtn?.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+            closeMobileMenu();
+        } else {
+            openMobileMenu();
+        }
+    }
+
+    function openMobileMenu() {
+        if (!mobileDropdownMenu) return;
+        mobileDropdownMenu.style.display = 'block';
+        mobileMenuBtn?.setAttribute('aria-expanded', 'true');
+        mobileMenuBtn?.classList.add('active');
+        if (window.gsap) {
+            gsap.fromTo(mobileDropdownMenu, 
+                { opacity: 0, y: -8, scale: 0.98 }, 
+                { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "power2.out" }
+            );
+        }
+    }
+
+    function closeMobileMenu() {
+        if (!mobileDropdownMenu) return;
+        mobileMenuBtn?.setAttribute('aria-expanded', 'false');
+        mobileMenuBtn?.classList.remove('active');
+        if (window.gsap && mobileDropdownMenu.style.display !== 'none') {
+            gsap.to(mobileDropdownMenu, {
+                opacity: 0,
+                y: -6,
+                duration: 0.15,
+                ease: "power2.in",
+                onComplete: () => {
+                    mobileDropdownMenu.style.display = 'none';
+                }
+            });
+        } else {
+            mobileDropdownMenu.style.display = 'none';
+        }
+    }
+
+    mobileMenuBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMobileMenu();
+    });
+
+    document.getElementById('mobileOpenApiKeyBtn')?.addEventListener('click', (event) => {
+        closeMobileMenu();
+        openApiKeyModal(event.currentTarget);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (mobileDropdownMenu && mobileDropdownMenu.style.display !== 'none') {
+            if (!mobileDropdownMenu.contains(e.target) && !mobileMenuBtn?.contains(e.target)) {
+                closeMobileMenu();
+            }
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileDropdownMenu && mobileDropdownMenu.style.display !== 'none') {
+            closeMobileMenu();
+        }
+    });
+
+    const apiKeyModal = document.getElementById('apiKeyModal');
+    document.getElementById('openApiKeyModalBtn')?.addEventListener('click', (event) => openApiKeyModal(event.currentTarget));
+    document.querySelectorAll('.close-api-key-modal-btn').forEach(button => {
+        button.addEventListener('click', closeApiKeyModal);
+    });
+    document.getElementById('doRegenerateKeyBtn')?.addEventListener('click', regenerateApiKey);
+    if (apiKeyModal) {
+        apiKeyModal.addEventListener('click', (event) => {
+            if (event.target === apiKeyModal) closeApiKeyModal();
+        });
+        apiKeyModal.addEventListener('keydown', (event) => Snip.trapModalFocus(event, apiKeyModal, closeApiKeyModal));
+    }
+
+    document.querySelectorAll('#toggleCreateDrawerBtn, #toggleCreateDrawerBtnEmpty').forEach(btn => {
+        btn.addEventListener('click', toggleCreateDrawer);
+    });
+
+    document.getElementById('linkFilter')?.addEventListener('input', (e) => filterLinks(e.target.value));
+
+    const sortSelect = document.querySelector('select[name="sort"]');
+    sortSelect?.addEventListener('change', () => sortSelect.form?.requestSubmit());
+
+    document.querySelectorAll('.time-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchGraph(tab.dataset.tab, tab));
+    });
+
+    document.querySelectorAll('.copy-link-btn').forEach(btn => {
+        btn.addEventListener('click', () => copyLink(btn.dataset.url, btn));
+    });
+
+    document.querySelectorAll('.toggle-ads-input').forEach(input => {
+        input.addEventListener('change', () => toggleAds(input.dataset.code, input));
+    });
+
+    document.querySelectorAll('.open-ad-config-btn').forEach(btn => {
+        btn.addEventListener('click', () => openAdConfigModalFromRow(btn));
+    });
+
+    document.querySelectorAll('.delete-link-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteLink(btn.dataset.code, btn));
+    });
+
+    document.querySelectorAll('.close-ad-config-btn').forEach(btn => {
+        btn.addEventListener('click', closeAdConfigModal);
+    });
+
+    const adConfigModal = document.getElementById('adConfigModal');
+    if (adConfigModal) {
+        adConfigModal.addEventListener('click', (e) => {
+            if (e.target === adConfigModal) closeAdConfigModal();
+        });
+        adConfigModal.addEventListener('keydown', (event) => Snip.trapModalFocus(event, adConfigModal, closeAdConfigModal));
+    }
+
+    document.querySelectorAll('.ad-type-radio').forEach(r => {
+        r.addEventListener('change', () => switchAdMode(r.value));
+    });
+
+    document.querySelectorAll('.custom-media-radio').forEach(r => {
+        r.addEventListener('change', updateCustomPreview);
+    });
+
+    document.querySelectorAll('.config-preview-input').forEach(inp => {
+        inp.addEventListener('input', updateCustomPreview);
+    });
+
+    // Initialize real-time expiry countdowns
+    updateExpiryBadges();
+    setInterval(updateExpiryBadges, 1000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Database and SQLite artifacts
+*.db
+*.db-wal
+*.db-shm
+
+# Environment & Virtual environments
+.env
+.venv/
+venv/
+antenv/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Azure
+.azure/
+.deployment
+
+# Screenshots & Static generated data
+data/screenshots/*.jpg
+screenshots/
+
+# Antigravity / Gemini artifacts
+.gemini/

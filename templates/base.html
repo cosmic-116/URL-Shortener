@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#040407">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Snip — Fast, secure URL shortener with real-time click analytics, QR studio, and link monetization.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}Snip{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="alternate icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Interactive Background Canvas -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <!-- Hardware-Accelerated Cursor Follower -->
+    <div id="cursor-dot" aria-hidden="true"></div>
+    <div id="cursor-ring" aria-hidden="true"></div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container" id="flash-container" role="region" aria-label="Notifications">
+                {% for category, message in messages %}
+                    <div class="flash-msg {% if category == 'success' %}flash-success{% elif category == 'error' %}flash-error{% else %}flash-info{% endif %}" role="{% if category == 'error' %}alert{% else %}status{% endif %}">
+                        <span style="display: flex; align-items: center; flex-shrink: 0;">
+                            {% if category == 'success' %}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            {% elif category == 'info' %}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            {% else %}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            {% endif %}
+                        </span>
+                        <span style="flex: 1;">{{ message }}</span>
+                        <button type="button" class="flash-close" aria-label="Dismiss notification">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Page Content (Native scroll with Lenis) -->
+    <main id="main-app">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Core CDN Libraries: GSAP with Subresource Integrity -->
+    <script nonce="{{ csp_nonce }}" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>
+
+    <!-- Base Engine Script (Particle Canvas + Cursor Follower) -->
+    <script nonce="{{ csp_nonce }}">
+    (function() {
+        // 1. Particle Background Canvas
+        const canvas = document.getElementById('bg-canvas');
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (canvas && !prefersReduced) {
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const particleCount = window.innerWidth < 768 ? 25 : 55;
+            let mouse = { x: -1000, y: -1000, radius: 130 };
+            let animPaused = false;
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize, { passive: true });
+            window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+
+            // Pause animation when tab is hidden (saves battery/CPU)
+            document.addEventListener('visibilitychange', () => { animPaused = document.hidden; });
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.38;
+                    this.vy = (Math.random() - 0.5) * 0.38;
+                    this.radius = Math.random() * 1.4 + 0.7;
+                    this.baseAlpha = Math.random() * 0.32 + 0.14;
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy;
+                    if (this.x < 0) this.x = width;
+                    if (this.x > width) this.x = 0;
+                    if (this.y < 0) this.y = height;
+                    if (this.y > height) this.y = 0;
+                    const dx = mouse.x - this.x, dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < mouse.radius) {
+                        const force = (mouse.radius - dist) / mouse.radius;
+                    if (dist > 0) {
+                        this.x -= (dx / dist) * force * 1.4;
+                        this.y -= (dy / dist) * force * 1.4;
+                    }
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${this.baseAlpha})`;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+
+            function animate() {
+                if (!animPaused) {
+                    ctx.clearRect(0, 0, width, height);
+                    for (let i = 0; i < particles.length; i++) {
+                        particles[i].update();
+                        particles[i].draw();
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 100) {
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.strokeStyle = `rgba(255,255,255,${(1 - dist / 100) * 0.1})`;
+                                ctx.lineWidth = 0.5;
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // 2. Hardware-Accelerated Custom Cursor (desktop fine-pointer only)
+        const cursorDot  = document.getElementById('cursor-dot');
+        const cursorRing = document.getElementById('cursor-ring');
+        if (cursorDot && cursorRing && window.matchMedia('(pointer: fine)').matches && !prefersReduced) {
+            document.body.classList.add('custom-cursor-enabled');
+            let mouseX = -100, mouseY = -100, ringX = -100, ringY = -100;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX; mouseY = e.clientY;
+                cursorDot.style.transform = `translate3d(${mouseX}px,${mouseY}px,0)`;
+            }, { passive: true });
+
+            (function renderCursor() {
+                ringX += (mouseX - ringX) * 0.18;
+                ringY += (mouseY - ringY) * 0.18;
+                cursorRing.style.transform = `translate3d(${ringX}px,${ringY}px,0)`;
+                requestAnimationFrame(renderCursor);
+            })();
+
+            document.addEventListener('mouseover', (e) => {
+                const t = e.target.closest('a,button,input,select,textarea,.interactive-card,.btn-action,[role="button"]');
+                if (t) cursorRing.classList.add(t.matches('input,select,textarea') ? 'cursor-text' : 'cursor-hover');
+            });
+            document.addEventListener('mouseout', (e) => {
+                if (e.target.closest('a,button,input,select,textarea,.interactive-card,.btn-action,[role="button"]'))
+                    cursorRing.classList.remove('cursor-hover', 'cursor-text');
+            });
+        }
+
+        // 3. Auto-dismiss & click-to-dismiss for flash notifications (disappears automatically)
+        const flashContainer = document.getElementById('flash-container');
+        if (flashContainer) {
+            function dismissMsg(msg) {
+                if (!msg || msg.dataset.dismissing) return;
+                msg.dataset.dismissing = 'true';
+                msg.style.transition = 'opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease';
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-10px)';
+                msg.style.maxHeight = '0';
+                msg.style.margin = '0';
+                msg.style.padding = '0 20px';
+                msg.style.overflow = 'hidden';
+                setTimeout(() => {
+                    msg.remove();
+                    if (flashContainer && !flashContainer.querySelector('.flash-msg')) {
+                        flashContainer.remove();
+                    }
+                }, 400);
+            }
+
+            flashContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('.flash-close');
+                const msg = e.target.closest('.flash-msg');
+                if (btn && msg) {
+                    dismissMsg(msg);
+                }
+            });
+
+            const msgs = flashContainer.querySelectorAll('.flash-msg');
+            msgs.forEach((msg, idx) => {
+                if (msg.classList.contains('flash-success')) {
+                    setTimeout(() => dismissMsg(msg), 5000 + idx * 300);
+                }
+            });
+        }
+
+        // 4. Global Accessible Toast & Modal Dialog Engine (replaces alert() and confirm())
+        function getModalFocusable(modal) {
+            return [...modal.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+                .filter(element => element.offsetParent !== null);
+        }
+
+        window.Snip = {
+            toast(message, type = 'info') {
+                let container = document.getElementById('snip-toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'snip-toast-container';
+                    container.className = 'snip-toast-container';
+                    container.setAttribute('role', 'region');
+                    container.setAttribute('aria-label', 'Alert notifications');
+                    document.body.appendChild(container);
+                }
+                const item = document.createElement('div');
+                item.className = `snip-toast-item toast-${type}`;
+                item.setAttribute('role', type === 'error' ? 'alert' : 'status');
+                
+                let iconSvg = '';
+                if (type === 'success') {
+                    iconSvg = '<svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+                } else if (type === 'error') {
+                    iconSvg = '<svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+                } else {
+                    iconSvg = '<svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="8"/></svg>';
+                }
+                
+                const icon = document.createElement('span');
+                icon.innerHTML = iconSvg;
+                item.append(icon, document.createTextNode(message));
+                container.appendChild(item);
+                setTimeout(() => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(12px) scale(0.95)';
+                    setTimeout(() => item.remove(), 300);
+                }, 3500);
+            },
+            openModal(modal, { trigger = document.activeElement, focusSelector } = {}) {
+                if (!modal) return;
+                modal._snipPreviousFocus = trigger;
+                modal.style.display = 'flex';
+                modal.setAttribute('aria-hidden', 'false');
+                const focusTarget = focusSelector ? modal.querySelector(focusSelector) : getModalFocusable(modal)[0];
+                requestAnimationFrame(() => focusTarget?.focus());
+            },
+            closeModal(modal) {
+                if (!modal) return;
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                modal._snipPreviousFocus?.focus?.();
+            },
+            trapModalFocus(event, modal, onEscape) {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    onEscape();
+                    return;
+                }
+                if (event.key !== 'Tab') return;
+                const focusable = getModalFocusable(modal);
+                if (!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            },
+            confirm({ title = 'Confirm Action', message = 'Are you sure?', confirmText = 'Confirm', danger = false }) {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'snip-modal-overlay';
+                    overlay.setAttribute('role', 'dialog');
+                    overlay.setAttribute('aria-modal', 'true');
+                    overlay.setAttribute('aria-labelledby', 'modalTitle');
+
+                    overlay.innerHTML = `
+                        <div class="snip-modal-dialog">
+                            <div class="snip-modal-header">
+                                <h2 id="modalTitle" class="snip-modal-title"></h2>
+                            </div>
+                            <div class="snip-modal-body">
+                                <p></p>
+                            </div>
+                            <div class="snip-modal-footer">
+                                <button type="button" class="btn-outline" id="modalCancelBtn" style="padding: 8px 16px; font-size: 13px;">Cancel</button>
+                                <button type="button" class="btn-primary" id="modalConfirmBtn" style="padding: 8px 16px; font-size: 13px;"></button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    const confirmBtn = overlay.querySelector('#modalConfirmBtn');
+                    const cancelBtn = overlay.querySelector('#modalCancelBtn');
+                    overlay.querySelector('#modalTitle').textContent = title;
+                    overlay.querySelector('.snip-modal-body p').textContent = message;
+                    confirmBtn.textContent = confirmText;
+                    confirmBtn.className = danger ? 'btn-danger' : 'btn-primary';
+                    const previousFocus = document.activeElement;
+                    confirmBtn.focus();
+
+                    function cleanup(result) {
+                        document.removeEventListener('keydown', handleKey);
+                        overlay.remove();
+                        previousFocus?.focus?.();
+                        resolve(result);
+                    }
+
+                    function handleKey(e) {
+                        if (e.key === 'Escape') cleanup(false);
+                        if (e.key === 'Tab') {
+                            e.preventDefault();
+                            (document.activeElement === confirmBtn ? cancelBtn : confirmBtn).focus();
+                        }
+                    }
+                    document.addEventListener('keydown', handleKey);
+
+                    confirmBtn.addEventListener('click', () => cleanup(true));
+                    cancelBtn.addEventListener('click', () => cleanup(false));
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) cleanup(false);
+                    });
+                });
+            }
+        };
+    })();
+    </script>
+
+    {% block page_scripts %}{% endblock %}
+</body>
+</html>

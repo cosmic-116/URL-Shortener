@@ -1,0 +1,792 @@
+{% extends "base.html" %}
+{% block title %}QR Studio{% endblock %}
+{% block content %}
+
+<!-- Floating Navigation Bar -->
+<header class="nav-floating" style="max-width: 1280px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="{{ url_for('index') }}" class="logo-minimal">
+            <div class="brand-symbol">
+                <svg class="scissors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="blade-top">
+                        <circle cx="6" cy="18" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 15.88L12 12L20 4" stroke-width="2.2"/>
+                    </g>
+                    <g class="blade-bottom">
+                        <circle cx="6" cy="6" r="3" stroke-width="2.2"/>
+                        <path d="M8.12 8.12L12 12L20 20" stroke-width="2.2"/>
+                    </g>
+                    <circle cx="12" cy="12" r="1.5" fill="#040407"/>
+                    <line class="scissor-spark" x1="18" y1="12" x2="23" y2="12" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="brand-text">Snip</span><span class="dot"></span>
+        </a>
+        <span class="nav-divider" style="width: 1px; height: 18px; background: var(--border);"></span>
+        <a href="{{ url_for('dashboard') }}" class="nav-section-title" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500;">Dashboard</a>
+        <span class="nav-divider" style="font-size: 12px; color: var(--text-muted);">›</span>
+        <span class="nav-section-title" style="font-size: 13px; color: var(--text-primary); font-weight: 600;">QR Studio</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="{{ url_for('dashboard') }}" class="btn-outline" style="padding: 6px 14px; font-size: 12px;"><span class="hide-mobile">← Back to </span><span class="show-mobile">← </span>Dashboard</a>
+    </div>
+</header>
+
+<main class="dashboard-main" style="max-width: 1280px; margin: 0 auto; padding: 130px 24px 100px;">
+    
+    <!-- Studio Header -->
+    <div style="margin-bottom: 36px;">
+        <div class="status-pill" style="margin-bottom: 12px;">
+            <span class="status-dot"></span>
+            <span>Dynamic Vector & HD QR Generator</span>
+        </div>
+        <h1 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 8px;">
+            QR Studio for <span style="font-family: var(--font-mono); color: #ffffff;">/{{ link.code }}</span>
+        </h1>
+        <p style="font-size: 14px; color: var(--text-secondary);">
+            Pointing to <a href="{{ short_url }}" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none; font-weight: 600;">{{ short_url }}</a>
+            <span style="color: var(--text-muted); margin: 0 6px;">→</span>
+            <span style="color: var(--text-secondary);" title="{{ link.original_url }}">{{ link.original_url[:65] }}{% if link.original_url|length > 65 %}...{% endif %}</span>
+        </p>
+    </div>
+
+    <!-- Two-Column Interactive Studio Layout -->
+    <div class="qr-studio-grid">
+        
+        <!-- Left Column: Sticky Live Canvas Preview -->
+        <div class="bento-cell qr-sticky-preview" style="padding: 32px; text-align: center; position: sticky; top: 110px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <span class="bento-tag" style="margin: 0;">Live Render</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px;">HD 1200 DPI</span>
+            </div>
+
+            <!-- The QR Frame Container -->
+            <div id="qrCanvasContainer" class="qr-canvas-container" role="img" aria-label="QR code for short link /{{ link.code }}" style="background: #ffffff; padding: 16px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin-bottom: 24px; min-width: 320px; min-height: 320px; transition: background-color 0.3s ease;">
+                <!-- QR Code is rendered here by JS -->
+            </div>
+
+            <!-- Download Action Suite -->
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="downloadPngBtn" class="btn-primary" style="padding: 14px; font-size: 14px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    <span>Download PNG (HD 1200px)</span>
+                </button>
+                <button id="downloadSvgBtn" class="btn-outline" style="padding: 12px; font-size: 13.5px; justify-content: center;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    <span>Download Vector SVG</span>
+                </button>
+            </div>
+
+            <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 14px;">
+                Scannable on all iOS and Android devices. No expiry.
+            </p>
+        </div>
+
+        <!-- Right Column: Interactive Studio Controls -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            
+            <!-- 1. Style Presets -->
+            <div class="bento-cell" style="padding: 28px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Presets</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Quick curated styles for print and digital</p>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <button type="button" class="btn-outline preset-btn active" aria-pressed="true" data-preset="bw" style="background: rgba(255,255,255,0.12); font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #ffffff; border: 1px solid #888; display: inline-block;"></span>
+                        Classic B&amp;W (Default)
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" aria-pressed="false" data-preset="dark" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #000000; border: 1px solid rgba(255,255,255,0.3); display: inline-block;"></span>
+                        Dark Minimal
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" aria-pressed="false" data-preset="emerald" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); display: inline-block;"></span>
+                        Cyber Emerald
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" aria-pressed="false" data-preset="sunset" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ec4899); display: inline-block;"></span>
+                        Neon Sunset
+                    </button>
+                    <button type="button" class="btn-outline preset-btn" aria-pressed="false" data-preset="ocean" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 9px; height: 9px; border-radius: 50%; background: #0284c7; box-shadow: 0 0 6px rgba(2,132,199,0.5); display: inline-block;"></span>
+                        Ocean Blue
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Module Shape (Dots Style) - 2 per row with actual shapes -->
+            <div class="bento-cell" style="padding: 28px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Module Shape</h3>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">2 PER ROW</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the internal QR pattern matrix</p>
+                
+                <div class="shape-selector-grid">
+                    <!-- 1. Square -->
+                    <button type="button" class="shape-card shape-card-shape active" aria-pressed="true" data-shape="square">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <rect x="2" y="2" width="7.5" height="7.5" rx="0"/>
+                                <rect x="12.5" y="2" width="7.5" height="7.5" rx="0"/>
+                                <rect x="2" y="12.5" width="7.5" height="7.5" rx="0"/>
+                                <rect x="12.5" y="12.5" width="7.5" height="7.5" rx="0"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Square (Classic)</div>
+                            <div class="shape-card-sub">Sharp geometric matrix</div>
+                        </div>
+                    </button>
+
+                    <!-- 2. Dots -->
+                    <button type="button" class="shape-card shape-card-shape" aria-pressed="false" data-shape="dots">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <circle cx="5.75" cy="5.75" r="4"/>
+                                <circle cx="16.25" cy="5.75" r="4"/>
+                                <circle cx="5.75" cy="16.25" r="4"/>
+                                <circle cx="16.25" cy="16.25" r="4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Dots (Circles)</div>
+                            <div class="shape-card-sub">Modern circular points</div>
+                        </div>
+                    </button>
+
+                    <!-- 3. Rounded Squircle -->
+                    <button type="button" class="shape-card shape-card-shape" aria-pressed="false" data-shape="rounded">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <rect x="2" y="2" width="7.5" height="7.5" rx="2.5"/>
+                                <rect x="12.5" y="2" width="7.5" height="7.5" rx="2.5"/>
+                                <rect x="2" y="12.5" width="7.5" height="7.5" rx="2.5"/>
+                                <rect x="12.5" y="12.5" width="7.5" height="7.5" rx="2.5"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Rounded Squircle</div>
+                            <div class="shape-card-sub">Soft curved modules</div>
+                        </div>
+                    </button>
+
+                    <!-- 4. Classy Diamond -->
+                    <button type="button" class="shape-card shape-card-shape" aria-pressed="false" data-shape="classy">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <polygon points="5.75,1.5 10,5.75 5.75,10 1.5,5.75"/>
+                                <polygon points="16.25,1.5 20.5,5.75 16.25,10 12,5.75"/>
+                                <polygon points="5.75,12 10,16.25 5.75,20.5 1.5,16.25"/>
+                                <polygon points="16.25,12 20.5,16.25 16.25,20.5 12,16.25"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Classy Diamond</div>
+                            <div class="shape-card-sub">Luxury faceted diamonds</div>
+                        </div>
+                    </button>
+
+                    <!-- 5. Classy Rounded -->
+                    <button type="button" class="shape-card shape-card-shape" aria-pressed="false" data-shape="classy-rounded">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <path d="M2,2 h4 a3.5,3.5 0 0 1 3.5,3.5 v4 h-7.5 Z"/>
+                                <path d="M12.5,2 h7.5 v7.5 h-4 a3.5,3.5 0 0 1 -3.5,-3.5 Z"/>
+                                <path d="M2,12.5 h7.5 v4 a3.5,3.5 0 0 1 -3.5,3.5 h-4 Z"/>
+                                <path d="M12.5,12.5 h4 a3.5,3.5 0 0 1 3.5,3.5 v4 h-7.5 Z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Classy Rounded</div>
+                            <div class="shape-card-sub">Curved organic modules</div>
+                        </div>
+                    </button>
+
+                    <!-- 6. Pill Smooth -->
+                    <button type="button" class="shape-card shape-card-shape" aria-pressed="false" data-shape="extra-rounded">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                <rect x="1.5" y="3" width="9" height="5.5" rx="2.75"/>
+                                <rect x="12" y="3" width="9" height="5.5" rx="2.75"/>
+                                <rect x="1.5" y="13.5" width="9" height="5.5" rx="2.75"/>
+                                <rect x="12" y="13.5" width="9" height="5.5" rx="2.75"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Pill Smooth</div>
+                            <div class="shape-card-sub">Elongated pill capsules</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. Corner Eye Markers - 2 per row with actual frame illustrations -->
+            <div class="bento-cell" style="padding: 28px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Corner Eye Markers</h3>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">2 PER ROW</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Customize the orientation anchor frames</p>
+                
+                <div class="shape-selector-grid">
+                    <!-- 1. Square Frame -->
+                    <button type="button" class="shape-card shape-card-corner active" aria-pressed="true" data-corner="square">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2.5" y="2.5" width="19" height="19" rx="0"/>
+                                <rect x="7.5" y="7.5" width="9" height="9" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Square Frame</div>
+                            <div class="shape-card-sub">Sharp geometric corners</div>
+                        </div>
+                    </button>
+
+                    <!-- 2. Rounded Frame -->
+                    <button type="button" class="shape-card shape-card-corner" aria-pressed="false" data-corner="extra-rounded">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2.5" y="2.5" width="19" height="19" rx="6"/>
+                                <rect x="7.5" y="7.5" width="9" height="9" rx="3" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Rounded Frame</div>
+                            <div class="shape-card-sub">Smooth modern squircle</div>
+                        </div>
+                    </button>
+
+                    <!-- 3. Circular Frame -->
+                    <button type="button" class="shape-card shape-card-corner" aria-pressed="false" data-corner="dot">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9.5"/>
+                                <circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Circular Target</div>
+                            <div class="shape-card-sub">Concentric bullseye rings</div>
+                        </div>
+                    </button>
+
+                    <!-- 4. Soft Rounded Anchor -->
+                    <button type="button" class="shape-card shape-card-corner" aria-pressed="false" data-corner="soft-rounded">
+                        <div class="shape-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2.5" y="2.5" width="19" height="19" rx="9"/>
+                                <circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="shape-card-title">Classy Rounded</div>
+                            <div class="shape-card-sub">Soft organic corner markers</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. Color & Gradient Customization -->
+            <div class="bento-cell" style="padding: 28px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Colors &amp; Gradients</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Fine-tune foreground pigments and background backdrops</p>
+
+                <!-- Color Mode Selector -->
+                <div class="qr-color-mode-buttons" style="margin-bottom: 20px;">
+                    <button type="button" class="btn-outline colormode-btn active" aria-pressed="true" data-colormode="solid" style="background: rgba(255,255,255,0.12);">
+                        Solid Color
+                    </button>
+                    <button type="button" class="btn-outline colormode-btn" aria-pressed="false" data-colormode="linear">
+                        Linear Gradient
+                    </button>
+                    <button type="button" class="btn-outline colormode-btn" aria-pressed="false" data-colormode="radial">
+                        Radial Gradient
+                    </button>
+                </div>
+
+                <!-- Pickers Grid -->
+                <div class="qr-color-picker-grid" style="margin-bottom: 20px;">
+                    <!-- Color 1 -->
+                    <div>
+                        <label class="form-label" for="primaryColorPicker" style="font-size: 12px; margin-bottom: 6px;">Primary Color</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="color" id="primaryColorPicker" value="#000000" style="width: 42px; height: 38px; border: 1px solid var(--border); border-radius: 6px; background: transparent; cursor: pointer;">
+                            <input type="text" id="primaryColorText" value="#000000" class="form-input" aria-label="Primary color hex value" autocomplete="off" spellcheck="false" style="padding: 8px 12px; font-family: var(--font-mono); font-size: 13px;">
+                        </div>
+                    </div>
+
+                    <!-- Color 2 (For Gradient) -->
+                    <div id="gradColorBox" aria-disabled="true" style="opacity: 0.4; pointer-events: none; transition: opacity 0.3s ease;">
+                        <label class="form-label" for="secondaryColorPicker" style="font-size: 12px; margin-bottom: 6px;">Gradient Stop Color</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="color" id="secondaryColorPicker" value="#3b82f6" disabled style="width: 42px; height: 38px; border: 1px solid var(--border); border-radius: 6px; background: transparent; cursor: pointer;">
+                            <input type="text" id="secondaryColorText" value="#3b82f6" class="form-input" aria-label="Gradient stop color hex value" autocomplete="off" spellcheck="false" disabled style="padding: 8px 12px; font-family: var(--font-mono); font-size: 13px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Options -->
+                <div>
+                    <span class="form-label" style="font-size: 12px; margin-bottom: 8px;">Background Canvas</span>
+                    <div class="qr-background-buttons">
+                        <button type="button" class="btn-outline bg-btn active" aria-pressed="true" data-bg="#ffffff" style="background: rgba(255,255,255,0.12);">
+                            Pure White
+                        </button>
+                        <button type="button" class="btn-outline bg-btn" aria-pressed="false" data-bg="#040407">
+                            Pitch Dark
+                        </button>
+                        <button type="button" class="btn-outline bg-btn" aria-pressed="false" data-bg="transparent">
+                            Transparent
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Developer & Integration Links -->
+            <div class="bento-cell" style="padding: 28px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Developer Integration</h3>
+                </div>
+                <div class="qr-developer-grid">
+                    <div style="padding: 14px 18px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Direct Image Endpoint</p>
+                        <code style="font-size: 12px; font-family: var(--font-mono); color: #60a5fa; word-break: break-all;">{{ request.host_url }}qr/{{ link.code }}</code>
+                    </div>
+                    <div style="padding: 14px 18px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">HTML Embed Tag</p>
+                        <code style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-emerald); word-break: break-all;">&lt;img src="{{ request.host_url }}qr/{{ link.code }}" width="200"&gt;</code>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+{% endblock %}
+
+{% block page_scripts %}
+<!-- Official QR Code Styling Library (Production CDN) -->
+<script nonce="{{ csp_nonce }}" src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+<script nonce="{{ csp_nonce }}">
+(function() {
+    const targetUrl = {{ short_url|tojson }};
+    const code = {{ link.code|tojson }};
+    const container = document.getElementById("qrCanvasContainer");
+    const downloadPngBtn = document.getElementById("downloadPngBtn");
+    const downloadSvgBtn = document.getElementById("downloadSvgBtn");
+
+    // Studio State (Black and White is DEFAULT as requested)
+    let state = {
+        data: targetUrl,
+        width: 300,
+        height: 300,
+        margin: 20,               // Clean quiet-zone border (standard QR quiet zone)
+        shape: "square",          // 'dots', 'rounded', 'classy', 'classy-rounded', 'square', 'extra-rounded'
+        cornerSquare: "square",   // 'dot', 'square', 'extra-rounded'
+        cornerDot: "square",      // 'dot', 'square'
+        cornerSelection: "square",
+        colorMode: "solid",       // 'solid', 'linear', 'radial'
+        color1: "#000000",
+        color2: "#3b82f6",
+        bgColor: "#ffffff"
+    };
+
+    // Helper to generate full QRCodeStyling configuration
+    function getQRCodeOptions(size, margin, renderType) {
+        const dotsOpt = {
+            type: state.shape
+        };
+
+        if (state.colorMode === "solid") {
+            dotsOpt.color = state.color1;
+            dotsOpt.gradient = null;
+        } else {
+            dotsOpt.gradient = {
+                type: state.colorMode,
+                rotation: 45,
+                colorStops: [
+                    { offset: 0, color: state.color1 },
+                    { offset: 1, color: state.color2 }
+                ]
+            };
+        }
+
+        const cornersSqOpt = {
+            type: state.cornerSquare,
+            color: state.color1
+        };
+
+        const cornersDotOpt = {
+            type: state.cornerDot,
+            color: state.color1
+        };
+
+        return {
+            width: size,
+            height: size,
+            type: renderType || "svg",
+            data: state.data,
+            margin: margin !== undefined ? margin : state.margin,
+            qrOptions: {
+                errorCorrectionLevel: "H"
+            },
+            dotsOptions: dotsOpt,
+            backgroundOptions: {
+                color: state.bgColor
+            },
+            cornersSquareOptions: cornersSqOpt,
+            cornersDotOptions: cornersDotOpt
+        };
+    }
+
+    // Initialize the QR Code Styling Engine with quiet-zone margin
+    const qrCode = new QRCodeStyling(getQRCodeOptions(state.width, state.margin, "svg"));
+
+    // Render into preview container
+    if (container) {
+        qrCode.append(container);
+    }
+
+    // Update function
+    function renderQR() {
+        const opts = getQRCodeOptions(state.width, state.margin, "svg");
+
+        qrCode.update({
+            margin: opts.margin,
+            dotsOptions: opts.dotsOptions,
+            backgroundOptions: opts.backgroundOptions,
+            cornersSquareOptions: opts.cornersSquareOptions,
+            cornersDotOptions: opts.cornersDotOptions
+        });
+
+        // Update container background to match preview
+        if (container) {
+            container.style.backgroundColor = state.bgColor === 'transparent' ? 'rgba(255,255,255,0.05)' : state.bgColor;
+        }
+    }
+
+    function syncUIButtons() {
+        const gradBox = document.getElementById('gradColorBox');
+        const gradientEnabled = state.colorMode !== 'solid';
+        if (gradBox) {
+            gradBox.style.opacity = gradientEnabled ? '1' : '0.35';
+            gradBox.style.pointerEvents = gradientEnabled ? 'auto' : 'none';
+            gradBox.setAttribute('aria-disabled', String(!gradientEnabled));
+            gradBox.querySelectorAll('input').forEach(input => { input.disabled = !gradientEnabled; });
+        }
+    }
+
+    function setPressedGroup(selector, isSelected) {
+        document.querySelectorAll(selector).forEach(button => {
+            const selected = isSelected(button);
+            button.classList.toggle('active', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+    }
+
+    function clearPresetSelection() {
+        setPressedGroup('.preset-btn', () => false);
+        document.querySelectorAll('.preset-btn').forEach(button => { button.style.background = 'transparent'; });
+    }
+
+    function syncControlSelection() {
+        setPressedGroup('.shape-card-shape', button => button.dataset.shape === state.shape);
+        setPressedGroup('.shape-card-corner', button => {
+            const corner = button.dataset.corner;
+            return corner === state.cornerSelection;
+        });
+        setPressedGroup('.colormode-btn', button => button.dataset.colormode === state.colorMode);
+        setPressedGroup('.bg-btn', button => button.dataset.bg === state.bgColor);
+        document.querySelectorAll('.colormode-btn, .bg-btn').forEach(button => {
+            button.style.background = button.getAttribute('aria-pressed') === 'true' ? 'rgba(255,255,255,0.12)' : 'transparent';
+        });
+    }
+
+    // Preset Handlers
+    function applyPreset(name, btn) {
+        document.querySelectorAll('.preset-btn').forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.setAttribute('aria-pressed', 'false');
+            b.style.background = 'transparent';
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.style.background = 'rgba(255,255,255,0.12)';
+
+        if (name === 'bw') {
+            state.shape = 'square';
+            state.cornerSquare = 'square';
+            state.cornerDot = 'square';
+            state.colorMode = 'solid';
+            state.color1 = '#000000';
+            state.color2 = '#000000';
+            state.bgColor = '#ffffff';
+        } else if (name === 'dark') {
+            state.shape = 'square';
+            state.cornerSquare = 'square';
+            state.cornerDot = 'square';
+            state.colorMode = 'solid';
+            state.color1 = '#ffffff';
+            state.bgColor = '#040407';
+        } else if (name === 'emerald') {
+            state.shape = 'rounded';
+            state.cornerSquare = 'extra-rounded';
+            state.cornerDot = 'dot';
+            state.colorMode = 'linear';
+            state.color1 = '#10b981';
+            state.color2 = '#3b82f6';
+            state.bgColor = '#040407';
+        } else if (name === 'sunset') {
+            state.shape = 'dots';
+            state.cornerSquare = 'extra-rounded';
+            state.cornerDot = 'dot';
+            state.colorMode = 'linear';
+            state.color1 = '#ec4899';
+            state.color2 = '#8b5cf6';
+            state.bgColor = '#ffffff';
+        } else if (name === 'ocean') {
+            state.shape = 'classy-rounded';
+            state.cornerSquare = 'extra-rounded';
+            state.cornerDot = 'dot';
+            state.colorMode = 'radial';
+            state.color1 = '#06b6d4';
+            state.color2 = '#3b82f6';
+            state.bgColor = '#040407';
+        }
+
+        // Sync pickers
+        const pPicker = document.getElementById('primaryColorPicker');
+        const pText = document.getElementById('primaryColorText');
+        const sPicker = document.getElementById('secondaryColorPicker');
+        const sText = document.getElementById('secondaryColorText');
+        if (pPicker) pPicker.value = state.color1;
+        if (pText) pText.value = state.color1;
+        if (sPicker) sPicker.value = state.color2;
+        if (sText) sText.value = state.color2;
+
+        state.cornerSelection = state.cornerSquare === 'square' ? 'square' : state.cornerSquare;
+        if (name === 'bw' || name === 'dark') state.cornerSelection = 'square';
+        syncControlSelection();
+        syncUIButtons();
+        renderQR();
+    }
+
+    // Shape Handlers
+    function setShape(shapeType, btn) {
+        clearPresetSelection();
+        state.shape = shapeType;
+        syncControlSelection();
+        renderQR();
+    }
+
+    // Corner Eye Handlers
+    function setCorner(cornerType, btn) {
+        clearPresetSelection();
+        state.cornerSelection = cornerType;
+        state.cornerSquare = cornerType === 'soft-rounded' ? 'extra-rounded' : cornerType;
+        state.cornerDot = cornerType === 'extra-rounded' ? 'dot' : cornerType === 'soft-rounded' ? 'square' : cornerType;
+        syncControlSelection();
+        renderQR();
+    }
+
+    // Color Mode Handlers
+    function setColorMode(mode, btn) {
+        clearPresetSelection();
+        state.colorMode = mode;
+        syncControlSelection();
+        syncUIButtons();
+        renderQR();
+    }
+
+    // Background Handlers
+    function setBgColor(colorVal, btn) {
+        clearPresetSelection();
+        state.bgColor = colorVal;
+        syncControlSelection();
+        renderQR();
+    }
+
+    // Color Pickers
+    function onColorChange() {
+        clearPresetSelection();
+        const pPicker = document.getElementById('primaryColorPicker');
+        const sPicker = document.getElementById('secondaryColorPicker');
+        const pText = document.getElementById('primaryColorText');
+        const sText = document.getElementById('secondaryColorText');
+        if (pPicker) state.color1 = pPicker.value;
+        if (sPicker) state.color2 = sPicker.value;
+        if (pText) pText.value = state.color1;
+        if (sText) sText.value = state.color2;
+        renderQR();
+    }
+
+    function onColorTextChange(which, val) {
+        if (val.startsWith('#') && (val.length === 7 || val.length === 4)) {
+            clearPresetSelection();
+            const pPicker = document.getElementById('primaryColorPicker');
+            const sPicker = document.getElementById('secondaryColorPicker');
+            if (which === 'primary') {
+                state.color1 = val;
+                if (pPicker) pPicker.value = val;
+            } else {
+                state.color2 = val;
+                if (sPicker) sPicker.value = val;
+            }
+            renderQR();
+        }
+    }
+
+    // Wire up event listeners
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const preset = btn.getAttribute('data-preset');
+            if (preset) applyPreset(preset, btn);
+        });
+    });
+
+    document.querySelectorAll('.shape-card-shape').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const shape = btn.getAttribute('data-shape');
+            if (shape) setShape(shape, btn);
+        });
+    });
+
+    document.querySelectorAll('.shape-card-corner').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const corner = btn.getAttribute('data-corner');
+            if (corner) setCorner(corner, btn);
+        });
+    });
+
+    document.querySelectorAll('.colormode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.getAttribute('data-colormode');
+            if (mode) setColorMode(mode, btn);
+        });
+    });
+
+    document.querySelectorAll('.bg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const bg = btn.getAttribute('data-bg');
+            if (bg) setBgColor(bg, btn);
+        });
+    });
+
+    const pPicker = document.getElementById('primaryColorPicker');
+    const pText = document.getElementById('primaryColorText');
+    const sPicker = document.getElementById('secondaryColorPicker');
+    const sText = document.getElementById('secondaryColorText');
+
+    if (pPicker) {
+        pPicker.addEventListener('input', onColorChange);
+        pPicker.addEventListener('change', onColorChange);
+    }
+    if (sPicker) {
+        sPicker.addEventListener('input', onColorChange);
+        sPicker.addEventListener('change', onColorChange);
+    }
+    if (pText) {
+        pText.addEventListener('input', () => onColorTextChange('primary', pText.value));
+    }
+    if (sText) {
+        sText.addEventListener('input', () => onColorTextChange('secondary', sText.value));
+    }
+
+    // Robust Cross-Platform Export Handlers (iOS Safari, Android & Desktop)
+    async function exportQRCode(extension, btn) {
+        const filename = `snip-qr-${code}.${extension}`;
+        const origContent = btn ? btn.innerHTML : null;
+        if (btn) {
+            btn.style.opacity = '0.75';
+            btn.style.pointerEvents = 'none';
+        }
+
+        try {
+            let blob = null;
+
+            // Generate high-resolution export with clean quiet-zone borders (HD 1200px for PNG, 600px for SVG)
+            try {
+                if (extension === 'png') {
+                    const exportQR = new QRCodeStyling(getQRCodeOptions(1200, 80, 'canvas'));
+                    blob = await exportQR.getRawData('png');
+                } else {
+                    const exportQR = new QRCodeStyling(getQRCodeOptions(600, 40, 'svg'));
+                    blob = await exportQR.getRawData('svg');
+                }
+            } catch (instErr) {
+                console.warn("Dedicated HD export instance failed, falling back to live QR instance:", instErr);
+            }
+
+            if (!blob) {
+                blob = await qrCode.getRawData(extension);
+            }
+            if (!blob) throw new Error("Could not create QR blob");
+
+            // Check if device is mobile/tablet (iOS, Android)
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                             (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
+
+            // 1. Native Mobile Share Sheet ONLY for mobile devices (iOS Safari & Android)
+            // On mobile iOS Safari, <a download> is ignored, so navigator.share provides
+            // the system sheet allowing "Save Image" to Photos or saving to Files.
+            // On desktop (Windows, Mac, Linux), we bypass this completely so files download directly.
+            if (isMobile && navigator.canShare) {
+                const mimeType = extension === 'svg' ? 'image/svg+xml' : 'image/png';
+                const file = new File([blob], filename, { type: mimeType });
+                if (navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: `Snip QR Code - /${code}`
+                        });
+                        return;
+                    } catch (shareErr) {
+                        if (shareErr.name === 'AbortError') return;
+                    }
+                }
+            }
+
+            // 2. Direct Download for Desktop (Blob Object URL with <a download>)
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+            }, 8000);
+        } catch (err) {
+            console.error("Export error, falling back to download():", err);
+            qrCode.download({
+                name: `snip-qr-${code}`,
+                extension: extension
+            });
+        } finally {
+            if (btn && origContent) {
+                btn.innerHTML = origContent;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+    }
+
+    if (downloadPngBtn) {
+        downloadPngBtn.addEventListener("click", () => exportQRCode("png", downloadPngBtn));
+    }
+
+    if (downloadSvgBtn) {
+        downloadSvgBtn.addEventListener("click", () => exportQRCode("svg", downloadSvgBtn));
+    }
+})();
+</script>
+{% endblock %}
