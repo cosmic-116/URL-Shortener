@@ -155,10 +155,9 @@ def verify_otp(conn, secret_key, email_normalized, purpose, code_submitted):
     expected_hash = hash_otp_code(secret_key, email_normalized, purpose, code_submitted)
     if not hmac.compare_digest(row['code_hash'], expected_hash):
         conn.execute('''
-            UPDATE email_otps
-            SET attempts = ?, consumed_at = CASE WHEN ? >= ? THEN CURRENT_TIMESTAMP ELSE consumed_at END
+            UPDATE email_otps SET attempts = ?
             WHERE id = ? AND consumed_at IS NULL
-        ''', (new_attempts, new_attempts, OTP_MAX_ATTEMPTS, row['id']))
+        ''', (new_attempts, row['id']))
         conn.commit()
         remaining_attempts = OTP_MAX_ATTEMPTS - new_attempts
         if remaining_attempts <= 0:

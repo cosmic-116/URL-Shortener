@@ -471,11 +471,12 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
     # ── 10. Rate Limiter Tests ────────────────────────────────
     def test_rate_limiter_exceeded(self):
         ip = "198.51.100.42"
-        # Window is 15 requests max
-        for _ in range(15):
-            self.assertFalse(core.is_rate_limited(ip, max_requests=15, window_seconds=60))
-        # 16th request must be rate-limited
-        self.assertTrue(core.is_rate_limited(ip, max_requests=15, window_seconds=60))
+        with app.app_context():
+            # Window is 15 requests max in the shared database.
+            for _ in range(15):
+                self.assertFalse(core.is_rate_limited(ip, max_requests=15, window_seconds=60))
+            # 16th request must be rate-limited.
+            self.assertTrue(core.is_rate_limited(ip, max_requests=15, window_seconds=60))
 
     # ── 11. Phase 2: Salted API Key Pepper & Single Query Lookup ──
     def test_salted_api_key_pepper_and_get_user(self):
