@@ -98,7 +98,10 @@ def redirect_link(code):
 
         serializer = get_ad_serializer()
         iat = int(time.time())
-        client_binding = hashlib.sha256(f"{ip}|{user_agent}".encode('utf-8')).hexdigest()[:16]
+        # The IP can change between the ad page and Continue (mobile networks,
+        # proxies, IPv6 privacy addresses). The signed, single-use nonce still
+        # protects the transit, so bind to the browser rather than its IP.
+        client_binding = hashlib.sha256(user_agent.encode('utf-8')).hexdigest()[:16]
         token = serializer.dumps({
             'link_id': link['id'],
             'nonce': nonce,
@@ -137,8 +140,11 @@ def continue_ad(token):
 
     client_ip = request.remote_addr or 'unknown'
     client_ua = request.headers.get('User-Agent', '')
-    curr_binding = hashlib.sha256(f"{client_ip}|{client_ua}".encode('utf-8')).hexdigest()[:16]
-    if not hmac.compare_digest(data.get('client_binding', ''), curr_binding):
+    curr_binding = hashlib.sha256(client_ua.encode('utf-8')).hexdigest()[:16]
+    legacy_binding = hashlib.sha256(f"{client_ip}|{client_ua}".encode('utf-8')).hexdigest()[:16]
+    token_binding = data.get('client_binding', '')
+    if not (hmac.compare_digest(token_binding, curr_binding) or
+            hmac.compare_digest(token_binding, legacy_binding)):
         return render_template('403.html', reason="Security token validation failure: bound to another client."), 403
 
     nonce = data.get('nonce')

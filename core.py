@@ -365,8 +365,9 @@ def validate_url_at_creation(url):
 
 def validate_url_at_redirect(url):
     """
-    Fast, cached URL verification for redirect routes (/<code> and /continue).
-    Uses a 5-minute bounded LRU verdict cache to prevent slow DNS from blocking workers.
+    Verify a stored destination before redirecting a visitor. Creation already
+    requires successful public DNS resolution. A temporary resolver failure at
+    click time must not turn an otherwise valid public link into a 403.
     """
     ok, err, parsed, hostname_clean = _parse_and_normalize_url(url)
     if not ok:
@@ -393,6 +394,9 @@ def validate_url_at_redirect(url):
     # Attempt quick resolution if not in cache
     try:
         addr_info = _resolve_dns_with_timeout(hostname_clean, timeout=3.0)
+        if not addr_info:
+            logger.warning("No DNS answers while redirecting to %s; using creation-time validation", hostname_clean)
+            return True
         for item in addr_info:
             sockaddr = item[4]
             ip_obj = ipaddress.ip_address(sockaddr[0])
@@ -401,9 +405,12 @@ def validate_url_at_redirect(url):
                 return False
         _set_cached_verdict(hostname_clean, True)
         return True
-    except Exception:
-        # If DNS fails at redirect time, do not permanently fail if previously valid
-        return False
+    except (OSError, TimeoutError) as exc:
+        # The app never fetches the destination during a redirect. Keep a link
+        # available during DNS outages, while still rejecting any resolved
+        # private address, blocked hostname, or invalid URL above.
+        logger.warning("DNS unavailable while redirecting to %s: %s", hostname_clean, exc)
+        return True
 
 def is_safe_url(url):
     """Backward-compatible alias for URL validation at creation."""
