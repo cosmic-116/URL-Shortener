@@ -1158,6 +1158,53 @@ body {
 }
 
 /* --- Footer --- */
+.guest-quota-status {
+    max-width: 820px;
+    margin: 12px auto 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.guest-quota-status #guestQuotaCount {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.guest-quota-status #guestQuotaNext {
+    display: inline-block;
+    margin-left: 6px;
+}
+
+.guest-quota-status #guestQuotaNext[hidden] {
+    display: none;
+}
+
+.site-contact-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+.site-contact-footer a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.site-contact-footer a:hover,
+.site-contact-footer a:focus-visible {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+
 .footer-cta {
     padding: 120px 32px 80px;
     text-align: center;
@@ -1387,6 +1434,18 @@ select.form-input option:disabled {
     text-underline-offset: 3px;
 }
 
+.destination-preview-trigger:focus-visible {
+    color: var(--text-primary) !important;
+    text-decoration: underline !important;
+}
+
+.dashboard-preview-note {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
 /* --- Interactive Action Buttons in Dashboard --- */
 .btn-action-icon {
     width: 32px;
@@ -1499,6 +1558,11 @@ select.form-input option:disabled {
     background: rgba(168, 85, 247, 0.14);
     color: #c084fc;
     border: 1px solid rgba(168, 85, 247, 0.28);
+}
+
+.open-ad-config-btn:focus-visible {
+    outline: 2px solid var(--accent-emerald);
+    outline-offset: 3px;
 }
 
 .ad-mode-option {
@@ -2575,13 +2639,15 @@ html, body {
         gap: 14px 16px;
         padding: 18px 16px;
     }
-    .table-row-grid > div {
+    .table-row-grid > div,
+    .table-row-grid > a {
         position: relative;
         min-width: 0;
         align-self: start;
         padding-top: 19px;
     }
-    .table-row-grid > div > .mobile-cell-label {
+    .table-row-grid > div > .mobile-cell-label,
+    .table-row-grid > a > .mobile-cell-label {
         display: block;
         position: absolute;
         top: 0;

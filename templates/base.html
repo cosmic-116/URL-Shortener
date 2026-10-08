@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#040407">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Snip — Fast, secure URL shortener with real-time click analytics, QR studio, and link monetization.">
+    <meta name="description" content="Snip — Fast, secure URL shortener with click analytics, QR Studio, and a demo ad transit experience.">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Snip{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
@@ -54,6 +54,13 @@
     <main id="main-app">
         {% block content %}{% endblock %}
     </main>
+
+    {% block site_footer %}
+    <footer class="site-contact-footer">
+        <span>2026 Snip · Made by Prince Gupta</span>
+        <a href="mailto:prince.gupta@snip-it.me">Contact the CEO · prince.gupta@snip-it.me</a>
+    </footer>
+    {% endblock %}
 
     <!-- Core CDN Libraries: GSAP with Subresource Integrity -->
     <script nonce="{{ csp_nonce }}" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>

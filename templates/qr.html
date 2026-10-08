@@ -57,13 +57,14 @@
         <div class="bento-cell qr-sticky-preview" style="padding: 32px; text-align: center; position: sticky; top: 110px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <span class="bento-tag" style="margin: 0;">Live Render</span>
-                <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px;">HD 1200 DPI</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px;">1200 px PNG</span>
             </div>
 
             <!-- The QR Frame Container -->
             <div id="qrCanvasContainer" class="qr-canvas-container" role="img" aria-label="QR code for short link /{{ link.code }}" style="background: #ffffff; padding: 16px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin-bottom: 24px; min-width: 320px; min-height: 320px; transition: background-color 0.3s ease;">
                 <!-- QR Code is rendered here by JS -->
             </div>
+            <p id="qrContrastWarning" role="status" hidden style="font-size: 12px; color: #feca57; margin: -8px 0 18px;">Low color contrast may make this QR hard to scan. Try a darker pattern or lighter background.</p>
 
             <!-- Download Action Suite -->
             <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -78,7 +79,7 @@
             </div>
 
             <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 14px;">
-                Scannable on all iOS and Android devices. No expiry.
+                Use a high-contrast style and scan the exported code before sharing. {% if link.expires_at %}This link expires on {{ link.expires_at }}.{% else %}This link has no set expiry.{% endif %}
             </p>
         </div>
 
@@ -353,11 +354,11 @@
                 <div class="qr-developer-grid">
                     <div style="padding: 14px 18px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
                         <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Direct Image Endpoint</p>
-                        <code style="font-size: 12px; font-family: var(--font-mono); color: #60a5fa; word-break: break-all;">{{ request.host_url }}qr/{{ link.code }}</code>
+                        <code style="font-size: 12px; font-family: var(--font-mono); color: #60a5fa; word-break: break-all;">{{ public_short_url('qr/' ~ link.code) }}</code>
                     </div>
                     <div style="padding: 14px 18px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border);">
                         <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">HTML Embed Tag</p>
-                        <code style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-emerald); word-break: break-all;">&lt;img src="{{ request.host_url }}qr/{{ link.code }}" width="200"&gt;</code>
+                        <code style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-emerald); word-break: break-all;">&lt;img src="{{ public_short_url('qr/' ~ link.code) }}" width="200"&gt;</code>
                     </div>
                 </div>
             </div>
@@ -381,6 +382,7 @@
     const container = document.getElementById("qrCanvasContainer");
     const downloadPngBtn = document.getElementById("downloadPngBtn");
     const downloadSvgBtn = document.getElementById("downloadSvgBtn");
+    const contrastWarning = document.getElementById("qrContrastWarning");
 
     // Studio State (Black and White is DEFAULT as requested)
     let state = {
@@ -454,6 +456,29 @@
         qrCode.append(container);
     }
 
+    function luminance(hex) {
+        const channels = [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
+        const linear = channels.map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+    }
+
+    function updateContrastWarning() {
+        if (!contrastWarning) return;
+        if (state.bgColor === 'transparent') {
+            contrastWarning.textContent = 'Transparent backgrounds can reduce scan reliability. Check the exported QR on its final background.';
+            contrastWarning.hidden = false;
+            return;
+        }
+        const bg = luminance(state.bgColor);
+        const colors = state.colorMode === 'solid' ? [state.color1] : [state.color1, state.color2];
+        const lowContrast = colors.some(color => {
+            const fg = luminance(color);
+            return (Math.max(bg, fg) + 0.05) / (Math.min(bg, fg) + 0.05) < 4.5;
+        });
+        contrastWarning.textContent = 'Low color contrast may make this QR hard to scan. Try a darker pattern or lighter background.';
+        contrastWarning.hidden = !lowContrast;
+    }
+
     // Update function
     function renderQR() {
         const opts = getQRCodeOptions(state.width, state.margin, "svg");
@@ -470,6 +495,7 @@
         if (container) {
             container.style.backgroundColor = state.bgColor === 'transparent' ? 'rgba(255,255,255,0.05)' : state.bgColor;
         }
+        updateContrastWarning();
     }
 
     function syncUIButtons() {

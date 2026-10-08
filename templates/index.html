@@ -79,6 +79,15 @@
             </form>
         </div>
 
+        {% if not session.get('user_id') %}
+        <p id="guestQuotaStatus" class="guest-quota-status" aria-live="polite">
+            <span id="guestQuotaCount">{{ guest_quota.remaining if guest_quota else 5 }}</span> of 5 free guest links available.
+            <span id="guestQuotaNext" {% if not guest_quota or not guest_quota.retry_after_seconds %}hidden{% endif %}>
+                Next slot opens in about {{ ((guest_quota.retry_after_seconds + 59) // 60) if guest_quota else 0 }} minutes.
+            </span>
+        </p>
+        {% endif %}
+
         <!-- Result Box (Hidden until shortened) -->
         <div id="result-box" style="display: none; margin: 24px auto 0; width: 100%; max-width: 820px;">
             <div class="result-card-modern" style="display: flex; flex-direction: column; gap: 18px;">
@@ -276,7 +285,7 @@
                 </div>
                 <h3 class="bento-headline">Dynamic QR Studio</h3>
                 <p class="bento-text">
-                    Generate scalable vector SVGs and 1200 DPI PNGs with customizable module geometry, color masks, and direct embed endpoints.
+                    Generate scalable vector SVGs and 1200 px PNGs with customizable module geometry, color masks, and direct embed endpoints.
                 </p>
             </div>
             <div style="margin-top: 32px; padding: 20px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
@@ -299,20 +308,20 @@
             </div>
             <h3 class="bento-headline">Sponsored Interstitials</h3>
             <p class="bento-text">
-                Toggle ad transit per link to monetize outgoing traffic with automated HMAC token verification and live payouts.
+                Try ad transit on your links with token verification and a simulated balance. Real payouts are not available yet.
             </p>
             <div class="latency-grid">
                 <div class="latency-item">
-                    <span class="latency-city">Per-Click Rate</span>
-                    <span class="latency-ms">$0.05</span>
+                    <span class="latency-city">Demo Network Credit</span>
+                    <span class="latency-ms">+$0.02</span>
                 </div>
                 <div class="latency-item">
-                    <span class="latency-city">Effective CPM</span>
-                    <span class="latency-ms">$50.00</span>
+                    <span class="latency-city">Demo Custom Ad</span>
+                    <span class="latency-ms">-$0.01</span>
                 </div>
                 <div class="latency-item">
                     <span class="latency-city">Transit Window</span>
-                    <span class="latency-ms">5 Sec</span>
+                    <span class="latency-ms">10 Sec</span>
                 </div>
                 <div class="latency-item">
                     <span class="latency-city">Token Guard</span>
@@ -379,6 +388,8 @@
 
 {% endblock %}
 
+{% block site_footer %}{% endblock %}
+
 {% block page_scripts %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener("DOMContentLoaded", () => {
@@ -405,6 +416,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const qrBtn = document.getElementById('qrBtn');
     const qrImg = document.getElementById('qrPreviewImg');
     const visitBtn = document.getElementById('visitBtn');
+    const guestQuotaCount = document.getElementById('guestQuotaCount');
+    const guestQuotaNext = document.getElementById('guestQuotaNext');
+
+    function guestWaitText(seconds) {
+        const minutes = Math.max(1, Math.ceil(seconds / 60));
+        if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+        const hours = Math.floor(minutes / 60);
+        const rest = minutes % 60;
+        return `${hours} hour${hours === 1 ? '' : 's'}${rest ? ` ${rest} minute${rest === 1 ? '' : 's'}` : ''}`;
+    }
+
+    function updateGuestQuota(remaining, retryAfter) {
+        if (guestQuotaCount && Number.isInteger(remaining)) guestQuotaCount.textContent = remaining;
+        if (guestQuotaNext && Number.isFinite(retryAfter) && retryAfter > 0) {
+            guestQuotaNext.textContent = `Next slot opens in about ${guestWaitText(retryAfter)}.`;
+            guestQuotaNext.hidden = false;
+        }
+    }
 
     if (form) {
         form.addEventListener('submit', async (e) => {
@@ -419,6 +448,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const res = await fetch('/shorten', { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.short_url) {
+                    updateGuestQuota(data.guest_remaining, data.guest_retry_after_seconds);
                     shortUrlEl.href = data.short_url;
                     shortUrlEl.innerText = data.short_url;
                     visitBtn.href = data.short_url;
@@ -465,9 +495,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     copyText.innerText = 'Copy Link';
                     Snip.toast("Short URL created successfully!", "success");
                 } else if (res.status === 429 && data.guest_limit_reached) {
+                    updateGuestQuota(data.guest_remaining, data.guest_retry_after_seconds);
                     Snip.confirm({
                         title: 'Keep Shortening with Snip',
-                        message: 'You’ve used your 5 free guest shortens for this window. Create a free account to keep shortening links and unlock your full Snip dashboard.',
+                        message: `You’ve used your 5 free guest links. Your next guest slot opens in about ${guestWaitText(data.guest_retry_after_seconds || 7200)}. Create a free account to keep shortening now.`,
                         confirmText: 'Create Free Account'
                     }).then((createAccount) => {
                         if (createAccount && data.register_url) {

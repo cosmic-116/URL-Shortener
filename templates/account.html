@@ -53,15 +53,15 @@
         <!-- Section 1: Verified Email & Change Email -->
         <div class="bento-cell" style="padding: 32px;">
             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
-                <span class="bento-tag" style="margin: 0;">Verified Email</span>
-                <span class="pill pill-clean" style="font-size: 11px;">Verified</span>
+                <span class="bento-tag" style="margin: 0;">Email Address</span>
+                {% if user.email_verified_at %}<span class="pill pill-clean" style="font-size: 11px;">Verified</span>{% else %}<span class="pill" style="font-size: 11px;">Unverified</span>{% endif %}
             </div>
             
             <div style="font-size: 18px; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-bottom: 8px;">
-                {{ user.email or 'No email verified' }}
+                {{ user.email or 'No email on account' }}
             </div>
             <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
-                Used for account recovery, security alerts, and ad monetization qualification.
+                Used for account recovery, security alerts, and access to demo ad controls.
             </p>
 
             <button type="button" id="toggleChangeEmailBtn" class="btn-outline" aria-expanded="false" aria-controls="changeEmailDrawer" style="font-size: 12.5px; padding: 8px 16px;">

@@ -10,7 +10,6 @@ import hmac
 import logging
 import tempfile
 import concurrent.futures
-from collections import deque
 from threading import BoundedSemaphore, Lock
 from urllib.parse import urlparse
 from datetime import datetime, timezone, timedelta
@@ -141,23 +140,24 @@ def calculate_expiry(expires_in):
 
 # ── SQLite-Backed Rate Limiting Engine ───────────────────────
 
-_rate_limits = {}
-_rl_lock = Lock()
-
 def is_rate_limited(key, max_requests=15, window_seconds=60, conn=None, record=True):
     """
-    SQLite-backed sliding-window rate limiter sharing state across Gunicorn workers.
-    Falls back gracefully to in-memory deque if database is unavailable.
+    SQLite-backed sliding-window rate limiter sharing state across workers.
+    Denies requests if the shared limit store is unavailable.
     """
     if not key:
         return False
     now = time.time()
     cutoff = now - window_seconds
 
+    owns_transaction = False
     try:
         import db
         if conn is None:
             conn = db.get_db()
+        owns_transaction = not conn.in_transaction
+        if owns_transaction:
+            conn.execute('BEGIN IMMEDIATE')
 
         # Prune stale records for this namespace
         conn.execute('DELETE FROM rate_limits WHERE key = ? AND timestamp < ?', (key, cutoff))
@@ -168,33 +168,20 @@ def is_rate_limited(key, max_requests=15, window_seconds=60, conn=None, record=T
         count = count_row['cnt'] if count_row else 0
 
         if count >= max_requests:
+            if owns_transaction:
+                conn.commit()
             return True
 
         if record:
             conn.execute('INSERT INTO rate_limits (key, timestamp) VALUES (?, ?)', (key, now))
+        if owns_transaction:
             conn.commit()
         return False
     except Exception as e:
-        logger.debug("Database rate limiter fallback: %s", e)
-        with _rl_lock:
-            if len(_rate_limits) > 5000:
-                stale_keys = [k for k, dq in _rate_limits.items() if not dq or now - dq[-1] >= window_seconds]
-                for k in stale_keys:
-                    del _rate_limits[k]
-
-            if key not in _rate_limits:
-                _rate_limits[key] = deque()
-
-            dq = _rate_limits[key]
-            while dq and now - dq[0] >= window_seconds:
-                dq.popleft()
-
-            if len(dq) >= max_requests:
-                return True
-
-            if record:
-                dq.append(now)
-            return False
+        if owns_transaction and conn is not None and conn.in_transaction:
+            conn.rollback()
+        logger.warning("Shared rate limiter unavailable for key prefix %s: %s", key.split(':', 1)[0], e)
+        return True
 
 
 # ── SSRF Guard & DNS Hardening ──────────────────────────────
@@ -659,7 +646,7 @@ def heuristic_check(url):
     return flags
 
 def _external_check_worker(app, link_id, url):
-    """Worker task that checks safety with Google Safe Browsing or sets unchecked status."""
+    """Record a clean verdict only when an external threat check succeeds."""
     with app.app_context():
         import db
         import requests
@@ -680,16 +667,17 @@ def _external_check_worker(app, link_id, url):
             }
             try:
                 r = requests.post(gsb_url, json=payload, timeout=5.0)
-                if r.status_code == 200 and r.json().get('matches'):
-                    new_status = 'malicious'
+                if r.status_code == 200:
+                    new_status = 'malicious' if r.json().get('matches') or flags else 'clean'
                 else:
-                    new_status = 'malicious' if flags else 'clean'
+                    logger.warning("Safe Browsing returned HTTP %s for link %s", r.status_code, link_id)
+                    new_status = 'malicious' if flags else 'unchecked'
             except Exception as e:
                 logger.warning("Safe Browsing API check failed: %s", e)
-                new_status = 'malicious' if flags else 'clean'
+                new_status = 'malicious' if flags else 'unchecked'
         else:
-            # Local heuristic threat evaluation: clean if no flags, malicious if threat indicators found
-            new_status = 'malicious' if flags else 'clean'
+            # Heuristics can flag a link but cannot establish that it is clean.
+            new_status = 'malicious' if flags else 'unchecked'
 
         try:
             conn = db.get_db()
@@ -754,43 +742,40 @@ def _screenshot_worker(code, url, data_dir):
             'url': url,
             'screenshot': 'true',
             'meta': 'false',
+            'embed': 'screenshot.url',
             'waitFor': '5000',
             'headers[user-agent]': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
         captured = False
         try:
-            r = requests.get("https://api.microlink.io/", params=params, timeout=25)
-            if r.status_code == 200:
-                data = r.json()
-                screenshot_url = data.get('data', {}).get('screenshot', {}).get('url')
-                if screenshot_url and is_safe_url(screenshot_url) and screenshot_url.startswith('https://'):
-                    img_r = requests.get(screenshot_url, stream=True, timeout=15)
-                    content_type = img_r.headers.get('Content-Type', '')
-                    if img_r.status_code == 200 and content_type.startswith('image/'):
-                        max_size = 5 * 1024 * 1024  # 5 MB cap
-                        total_bytes = 0
-                        temp_fd, temp_path = tempfile.mkstemp(dir=screenshots_dir, suffix='.tmp')
-                        try:
-                            with os.fdopen(temp_fd, 'wb') as f:
-                                for chunk in img_r.iter_content(chunk_size=8192):
-                                    total_bytes += len(chunk)
-                                    if total_bytes > max_size:
-                                        raise ValueError("Screenshot exceeds 5MB limit")
-                                    f.write(chunk)
-                            try:
-                                from PIL import Image
-                                with Image.open(temp_path) as im:
-                                    im.convert('RGB').save(filepath, format='JPEG', quality=85, optimize=True)
-                                captured = True
-                            finally:
-                                if os.path.exists(temp_path):
-                                    os.remove(temp_path)
-                        except Exception:
-                            if os.path.exists(temp_path):
-                                os.remove(temp_path)
-                            raise
+            # Microlink can return the screenshot bytes from its fixed API host.
+            # Do not fetch a second URL supplied by the API response or follow
+            # a redirect to a different host.
+            with requests.get("https://api.microlink.io/", params=params,
+                              stream=True, timeout=25, allow_redirects=False) as img_r:
+                content_type = img_r.headers.get('Content-Type', '').lower()
+                if img_r.status_code == 200 and content_type.startswith('image/'):
+                    max_size = 5 * 1024 * 1024
+                    total_bytes = 0
+                    temp_fd, temp_path = tempfile.mkstemp(dir=screenshots_dir, suffix='.tmp')
+                    try:
+                        with os.fdopen(temp_fd, 'wb') as f:
+                            for chunk in img_r.iter_content(chunk_size=8192):
+                                total_bytes += len(chunk)
+                                if total_bytes > max_size:
+                                    raise ValueError("Screenshot exceeds 5MB limit")
+                                f.write(chunk)
+                        from PIL import Image
+                        with Image.open(temp_path) as im:
+                            if im.width * im.height > 20_000_000:
+                                raise ValueError("Screenshot dimensions exceed limit")
+                            im.convert('RGB').save(filepath, format='JPEG', quality=85, optimize=True)
+                        captured = True
+                    finally:
+                        if os.path.exists(temp_path):
+                            os.remove(temp_path)
         except Exception as e:
-            logger.warning("[Screenshot Error] Failed capture for %s: %s", url, e)
+            logger.warning("[Screenshot Error] Failed capture for host %s: %s", parsed.netloc, e)
 
         if not captured and not os.path.exists(filepath):
             _generate_fallback_screenshot(filepath, parsed.netloc or code)

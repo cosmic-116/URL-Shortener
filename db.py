@@ -274,12 +274,6 @@ def upgrade_db(db_conn):
         # Drop redundant idx_links_code if present
         db_conn.execute("DROP INDEX IF EXISTS idx_links_code;")
 
-        # Resolve any legacy links with 'unchecked' safety_status to 'clean'
-        try:
-            db_conn.execute("UPDATE links SET safety_status = 'clean' WHERE safety_status = 'unchecked';")
-        except Exception:
-            pass
-
         db_conn.commit()
     except Exception as e:
         logger.error("Critical database migration error: %s", e)

@@ -307,7 +307,7 @@ def _render_email_template(template_name, context, fallback_html):
         logger.debug("Template render fallback: %s", e)
     return fallback_html
 
-def send_registration_otp(to, code, expires_minutes=10, sync=False):
+def send_registration_otp(to, code, expires_minutes=10, sync=True):
     """Sends 6-digit registration verification code."""
     subject = "Verify Your Snip Account"
     text = (
@@ -320,7 +320,7 @@ def send_registration_otp(to, code, expires_minutes=10, sync=False):
     html = _render_email_template("registration_otp.html", {"code": code, "expires_minutes": expires_minutes}, fallback_html)
     return send_mail(to, subject, text, html_body=html, sync=sync)
 
-def send_password_reset_otp(to, code, expires_minutes=10, sync=False):
+def send_password_reset_otp(to, code, expires_minutes=10, sync=True):
     """Sends 6-digit password reset verification code."""
     subject = "Reset Your Snip Password"
     text = (
@@ -333,7 +333,7 @@ def send_password_reset_otp(to, code, expires_minutes=10, sync=False):
     html = _render_email_template("password_reset_otp.html", {"code": code, "expires_minutes": expires_minutes}, fallback_html)
     return send_mail(to, subject, text, html_body=html, sync=sync)
 
-def send_change_email_otp(to, code, expires_minutes=10, sync=False):
+def send_change_email_otp(to, code, expires_minutes=10, sync=True):
     """Sends 6-digit code to verify new email address."""
     subject = "Verify New Snip Email Address"
     text = (

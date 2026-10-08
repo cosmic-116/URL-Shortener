@@ -17,7 +17,8 @@ from blueprints import register_blueprints
 from blueprints.helpers import (
     build_short_url, get_ip_hash, get_json_payload, login_required,
     require_api_key, DUMMY_PW_HASH, BOT_UA_PATTERNS, get_ad_serializer,
-    get_pending_serializer, _clean_ad_config, _shorten_logic, _delete_screenshot_file
+    get_pending_serializer, _clean_ad_config, _shorten_logic,
+    _delete_screenshot_file, get_guest_quota_status
 )
 
 # Configure structured logging
@@ -109,7 +110,8 @@ def generate_csrf_token():
 def inject_template_globals():
     return dict(
         csrf_token=generate_csrf_token,
-        csp_nonce=getattr(g, 'csp_nonce', '')
+        csp_nonce=getattr(g, 'csp_nonce', ''),
+        public_short_url=build_short_url
     )
 
 @app.before_request
@@ -277,7 +279,13 @@ def favicon():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    guest_quota = None
+    if 'user_id' not in session:
+        try:
+            guest_quota = get_guest_quota_status(db.get_db(), request.remote_addr or 'unknown')
+        except Exception as exc:
+            logger.warning("Could not read guest quota for homepage: %s", exc)
+    return render_template('index.html', guest_quota=guest_quota)
 
 
 # ── Register Blueprints ─────────────────────────────────────

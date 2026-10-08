@@ -29,21 +29,24 @@ def register():
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
 
+        def show_registration_error():
+            return render_template('register.html', username=username, email=email), 400
+
         # Input validation
         is_user_valid, user_err = core.validate_username(username)
         if not is_user_valid:
             flash(user_err, 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
 
         is_pw_valid, pw_err = core.validate_password(password)
         if not is_pw_valid:
             flash(pw_err, 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
 
         is_email_valid, email_res = core.validate_email(email)
         if not is_email_valid:
             flash(email_res, 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
         email_normalized = email_res
 
         conn = db.get_db()
@@ -51,7 +54,7 @@ def register():
         # Explicit username taken error
         if conn.execute('SELECT id FROM users WHERE username = ? COLLATE NOCASE', (username,)).fetchone():
             flash('Username already taken.', 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
 
         pending_serializer = get_pending_serializer()
 
@@ -74,7 +77,7 @@ def register():
         ok_limits, limit_err, _ = otp.check_otp_rate_limits(conn, email_normalized, 'register', ip_hash)
         if not ok_limits:
             flash(limit_err, 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
 
         pwhash = generate_password_hash(password)
         pending_payload = json.dumps({'username': username, 'password_hash': pwhash})
@@ -87,10 +90,10 @@ def register():
         mail_status = mailer.send_registration_otp(email, code)
         if mail_status == MailStatus.CAP_REACHED:
             flash('Verification emails are temporarily unavailable, please try again shortly.', 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
         elif not mail_status:
             flash('Failed to send verification email. Please try again shortly.', 'error')
-            return redirect(url_for('register'))
+            return show_registration_error()
 
         session['pending_register'] = pending_serializer.dumps({
             'email': email,

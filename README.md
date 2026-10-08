@@ -11,7 +11,7 @@ Snip is a high-performance URL shortener with real-time analytics, QR code gener
 - **Email & OTP Security**: Email registration and password reset powered by 6-digit OTPs (stored as HMAC-SHA256 digests), 60-second cooldowns, disposable email blocking, and Azure Communication Services (ACS) / SMTP support.
 - **Real-Time Click Telemetry**: Bot/crawler filtering, IP hashing, and per-link click tracking.
 - **Dynamic QR Studio**: Client-side vector QR studio and server-side PNG rendering with LRU caching.
-- **Optional Link Monetization**: Built-in interstitial gateway with client-bound signed tokens and countdown verification.
+- **Ad Transit Demo**: Interstitial gateway with signed tokens and countdown verification. Balances and per-click credits are simulated; no real payments or payouts are connected.
 - **Hardened Middleware**: Werkzeug `ProxyFix`, SQLite-backed distributed sliding-window rate limiters, per-request CSP nonces, CSRF double-submit protection, and instant multi-device session revocation via `session_version`.
 
 ---

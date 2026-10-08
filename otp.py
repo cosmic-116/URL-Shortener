@@ -114,8 +114,8 @@ def create_otp(conn, secret_key, email_normalized, email_display, purpose, user_
 def verify_otp(conn, secret_key, email_normalized, purpose, code_submitted):
     """
     Atomically verifies a submitted OTP code.
-    Increments and commits attempts before comparison (Refinement 7).
-    Clears pending_payload on successful consumption (Refinement 9).
+    Holds the write transaction through comparison and consumption so a code
+    cannot be accepted by two concurrent requests.
     Returns (success: bool, payload_or_error: dict|str).
     """
     if not code_submitted or not isinstance(code_submitted, str):
@@ -149,24 +149,31 @@ def verify_otp(conn, secret_key, email_normalized, purpose, code_submitted):
         conn.commit()
         return False, "Too many incorrect attempts. This code is no longer valid. Please request a new one."
 
-    # Atomically increment attempts and COMMIT IMMEDIATELY (Refinement 7)
+    # Keep the write lock until the attempt is recorded and, on success, the
+    # code is consumed. Committing here would let another request reuse it.
     new_attempts = row['attempts'] + 1
-    conn.execute('UPDATE email_otps SET attempts = ? WHERE id = ?', (new_attempts, row['id']))
-    conn.commit()
-
     expected_hash = hash_otp_code(secret_key, email_normalized, purpose, code_submitted)
     if not hmac.compare_digest(row['code_hash'], expected_hash):
+        conn.execute('''
+            UPDATE email_otps
+            SET attempts = ?, consumed_at = CASE WHEN ? >= ? THEN CURRENT_TIMESTAMP ELSE consumed_at END
+            WHERE id = ? AND consumed_at IS NULL
+        ''', (new_attempts, new_attempts, OTP_MAX_ATTEMPTS, row['id']))
+        conn.commit()
         remaining_attempts = OTP_MAX_ATTEMPTS - new_attempts
         if remaining_attempts <= 0:
             return False, "Too many incorrect attempts. This code is no longer valid. Please request a new one."
         return False, f"Invalid verification code. {remaining_attempts} attempt{'s' if remaining_attempts != 1 else ''} remaining."
 
-    # Code matched! Consume OTP and clear pending_payload (Refinement 9)
-    conn.execute('''
+    # Return the payload read under the lock, then clear it in the database.
+    consumed = conn.execute('''
         UPDATE email_otps 
-        SET consumed_at = CURRENT_TIMESTAMP, pending_payload = NULL 
-        WHERE id = ?
-    ''', (row['id'],))
+        SET attempts = ?, consumed_at = CURRENT_TIMESTAMP, pending_payload = NULL
+        WHERE id = ? AND consumed_at IS NULL AND attempts < ?
+    ''', (new_attempts, row['id'], OTP_MAX_ATTEMPTS))
+    if consumed.rowcount != 1:
+        conn.rollback()
+        return False, "This verification code has already been used. Please request a new one."
     conn.commit()
 
     return True, dict(row)

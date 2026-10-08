@@ -452,13 +452,19 @@ class SnipSecurityAndCoreTestCase(unittest.TestCase):
             self.assertEqual(guest_download.status_code, 302)
             self.assertIn('/login', guest_download.location)
 
-            # Signed-in users retain styled QR access.
+            # A signed-in user cannot style a guest-created link.
             self._register_and_login(c, 'qr_user', 'StrongPassword1')
-            qr_styled = c.get(f'/qr/{code}/styled')
+            self.assertEqual(c.get(f'/qr/{code}/styled').status_code, 403)
+            self.assertEqual(c.get(f'/qr/{code}/download').status_code, 403)
+
+            csrf = session.get('csrf_token')
+            owned_resp = c.post('/shorten', data={'url': 'https://example.com', 'csrf_token': csrf})
+            owned_code = owned_resp.get_json()['code']
+            qr_styled = c.get(f'/qr/{owned_code}/styled')
             self.assertEqual(qr_styled.status_code, 200)
             self.assertEqual(qr_styled.content_type, 'image/png')
 
-            qr_dl = c.get(f'/qr/{code}/download')
+            qr_dl = c.get(f'/qr/{owned_code}/download')
             self.assertEqual(qr_dl.status_code, 200)
             self.assertIn('attachment', qr_dl.headers.get('Content-Disposition', ''))
 

@@ -1,7 +1,7 @@
 import io
 import re
 import threading
-from flask import Blueprint, request, abort, render_template, current_app, Response
+from flask import Blueprint, request, abort, render_template, current_app, Response, session
 
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
@@ -73,9 +73,11 @@ def _serve_qr_helper(code, style='basic', as_download=False):
         return render_template('429.html'), 429
 
     conn = db.get_db()
-    link = conn.execute('SELECT code FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
+    link = conn.execute('SELECT code, owner_id FROM links WHERE code = ? COLLATE NOCASE', (code,)).fetchone()
     if not link:
         abort(404)
+    if style == 'styled' and link['owner_id'] != session.get('user_id'):
+        abort(403)
 
     short_url = build_short_url(code)
     qr_data = _get_cached_qr(short_url, style=style)

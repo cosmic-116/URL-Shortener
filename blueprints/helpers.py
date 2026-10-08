@@ -4,6 +4,7 @@ import hmac
 import hashlib
 import sqlite3
 import time
+import math
 from datetime import datetime, timezone
 from functools import wraps
 from flask import request, jsonify, session, redirect, url_for, g, flash, current_app
@@ -42,6 +43,19 @@ def get_ip_hash(ip):
     """Derives an isolated key for IP hashing to protect raw secret key."""
     derived_key = hashlib.sha256(current_app.secret_key.encode('utf-8') + b"|iphash").digest()
     return hmac.new(derived_key, ip.encode('utf-8'), hashlib.sha256).hexdigest()
+
+
+def get_guest_quota_status(conn, ip):
+    """Return remaining guest links and time until the next slot opens."""
+    now = time.time()
+    key = f"guest_shorten:{get_ip_hash(ip)}"
+    row = conn.execute('''
+        SELECT COUNT(*) AS count, MIN(timestamp) AS oldest
+        FROM rate_limits WHERE key = ? AND timestamp >= ?
+    ''', (key, now - 7200)).fetchone()
+    count = row['count'] if row else 0
+    retry_after = max(0, math.ceil(row['oldest'] + 7200 - now)) if count else 0
+    return {'remaining': max(0, 5 - count), 'retry_after_seconds': retry_after}
 
 def build_short_url(code):
     """Builds the public short URL using BASE_URL if configured, falling back to request.host_url."""
@@ -242,15 +256,18 @@ def _shorten_logic(owner_id, enforce_guest_quota=False):
         # link. This prevents concurrent requests from overshooting the limit.
         conn.execute('BEGIN IMMEDIATE')
         conn.execute('DELETE FROM rate_limits WHERE key = ? AND timestamp < ?', (guest_key, cutoff))
-        guest_count = conn.execute(
-            'SELECT COUNT(*) AS count FROM rate_limits WHERE key = ? AND timestamp >= ?',
+        guest_row = conn.execute(
+            'SELECT COUNT(*) AS count, MIN(timestamp) AS oldest FROM rate_limits WHERE key = ? AND timestamp >= ?',
             (guest_key, cutoff)
-        ).fetchone()['count']
+        ).fetchone()
+        guest_count = guest_row['count']
         if guest_count >= 5:
             conn.rollback()
             return jsonify({
                 'error': 'Guest shortening limit reached. Create a free account to continue.',
                 'guest_limit_reached': True,
+                'guest_remaining': 0,
+                'guest_retry_after_seconds': max(0, math.ceil(guest_row['oldest'] + 7200 - now)),
                 'login_url': url_for('login'),
                 'register_url': url_for('register')
             }), 429
@@ -305,5 +322,7 @@ def _shorten_logic(owner_id, enforce_guest_quota=False):
         'short_url': short_url,
         'original_url': url,
         'expires_at': expires_at,
-        'heuristic_flags': heuristic_flags
+        'heuristic_flags': heuristic_flags,
+        'guest_remaining': 5 - guest_count - 1 if guest_key else None,
+        'guest_retry_after_seconds': max(0, math.ceil((guest_row['oldest'] if guest_count else now) + 7200 - now)) if guest_key else None
     })
