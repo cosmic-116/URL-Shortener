@@ -18,6 +18,7 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('design_demo_asset', filename='snip-cut.css') }}" rel="stylesheet">
 </head>
 <body>
     <!-- Interactive Background Canvas -->
@@ -58,6 +59,7 @@
     {% block site_footer %}
     <footer class="site-contact-footer">
         <span>2026 Snip · Made by Prince Gupta</span>
+        <a href="{{ url_for('design_demo') }}" class="alternate-look-link">Try alternate look · Demo</a>
         <a href="mailto:prince.gupta@snip-it.me">Contact the CEO · prince.gupta@snip-it.me</a>
     </footer>
     {% endblock %}

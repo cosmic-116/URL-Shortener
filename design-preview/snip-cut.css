@@ -1,0 +1,39 @@
+.design-demo-invite{display:flex;justify-content:center;margin:20px 0 0}
+.design-demo-invite .alternate-look-link{display:inline-flex;align-items:center;gap:12px;border:1px solid #ffffff25;border-radius:999px;padding:9px 15px;color:#c8ccd5;font-size:12px;text-decoration:none;transition:border-color .2s,background .2s}
+.design-demo-invite .alternate-look-link:hover{border-color:#e5f45a88;background:#e5f45a0a}
+.design-demo-invite .alternate-look-link span{font-size:10px;color:#e5f45a}
+.snip-cut-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;pointer-events:none;background:#111a12c9;backdrop-filter:blur(7px);animation:snip-overlay 1.75s both;font-family:Arial,Helvetica,sans-serif;color:#fffefa}
+.snip-cut-scene{position:relative;width:min(680px,90vw);height:320px;display:grid;place-items:center}
+.snip-cut-label{position:absolute;top:0;font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:#e5f45a}
+.snip-cut-ribbon{position:absolute;top:128px;width:100%;height:58px;display:flex;filter:drop-shadow(0 10px 20px #0004)}
+.snip-cut-half{position:relative;width:50%;height:100%;overflow:hidden;background:#fffefa;color:#171b18;display:flex;align-items:center;font:14px Consolas,monospace}
+.snip-cut-half span{position:absolute;width:200%;padding:0 25px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snip-cut-left{border-radius:7px 0 0 7px;animation:snip-left 1.75s both}
+.snip-cut-right{border-radius:0 7px 7px 0;animation:snip-right 1.75s both}
+.snip-cut-right span{left:-100%}
+.snip-cut-seam{position:absolute;left:50%;height:100%;border-left:1px dashed #819575;opacity:0;animation:snip-seam 1.75s both}
+.snip-cut-scissors{position:absolute;top:51px;left:calc(50% - 294px);width:340px;height:220px;overflow:visible;filter:drop-shadow(0 12px 9px #0005);animation:snip-arrive 1.75s both}
+.snip-cut-upper,.snip-cut-lower{transform-box:view-box;transform-origin:138px 115px}
+.snip-cut-upper{animation:snip-upper 1.75s both}.snip-cut-lower{animation:snip-lower 1.75s both}
+.snip-cut-sparks{position:absolute;left:50%;top:157px}
+.snip-cut-sparks i{position:absolute;background:#e5f45a;width:4px;height:4px;border-radius:50%;animation:snip-spark 1.75s both;--spark-x:35px;--spark-y:-30px}
+.snip-cut-sparks i:nth-child(2){--spark-x:-35px;--spark-y:-35px}.snip-cut-sparks i:nth-child(3){--spark-x:28px;--spark-y:25px}.snip-cut-sparks i:nth-child(4){--spark-x:-32px;--spark-y:30px}
+.snip-cut-result{position:absolute;top:140px;max-width:100%;display:grid;gap:12px;text-align:center;animation:snip-reveal 1.75s both}
+.snip-cut-result span{font-size:12px;color:#a8b8a4}.snip-cut-result strong{font:600 clamp(16px,3.5vw,27px) Consolas,monospace;color:#e5f45a;overflow-wrap:anywhere}
+@keyframes snip-overlay{0%{opacity:0}8%,88%{opacity:1}100%{opacity:0}}
+@keyframes snip-arrive{0%,5%{transform:translate(-120px,20px) rotate(-12deg);opacity:0}24%,57%{transform:translate(0,0);opacity:1}75%,100%{transform:translate(100px,-90px) rotate(12deg);opacity:0}}
+@keyframes snip-upper{0%,28%{transform:rotate(-5deg)}42%,50%{transform:rotate(19deg)}58%,100%{transform:rotate(0deg)}}
+@keyframes snip-lower{0%,28%{transform:rotate(5deg)}42%,50%{transform:rotate(-19deg)}58%,100%{transform:rotate(0deg)}}
+@keyframes snip-left{0%,42%{transform:none;opacity:1}67%,100%{transform:translate(-80px,80px) rotate(-12deg);opacity:0}}
+@keyframes snip-right{0%,42%{transform:none;opacity:1}67%,100%{transform:translate(80px,80px) rotate(12deg);opacity:0}}
+@keyframes snip-reveal{0%,62%{opacity:0;transform:translateY(14px) scale(.96)}77%,100%{opacity:1;transform:none}}
+@keyframes snip-seam{0%,35%{opacity:0}39%,43%{opacity:1}50%,100%{opacity:0}}
+@keyframes snip-spark{0%,42%{opacity:0;transform:none}45%{opacity:1}63%,100%{opacity:0;transform:translate(var(--spark-x),var(--spark-y))}}
+.brand-symbol .blade-top,.brand-symbol .blade-bottom{transform-box:view-box;transform-origin:50% 50%}
+.logo-minimal:focus-visible .blade-top{animation:crazySnipTop .6s ease both}.logo-minimal:focus-visible .blade-bottom{animation:crazySnipBottom .6s ease both}
+.brand-mark .scissor-arm{transform-box:view-box;transform-origin:50% 50%;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.brand:hover .scissor-arm:first-child,.brand:focus-visible .scissor-arm:first-child{transform:rotate(21deg)}
+.brand:hover .scissor-arm:nth-child(2),.brand:focus-visible .scissor-arm:nth-child(2){transform:rotate(-21deg)}
+.snip-cut-playing .brand-mark .scissor-arm:first-child{transform:rotate(21deg)}.snip-cut-playing .brand-mark .scissor-arm:nth-child(2){transform:rotate(-21deg)}
+@media(max-width:600px){.snip-cut-scissors{width:260px;left:calc(50% - 222px);top:73px;height:169px}.snip-cut-half span{font-size:11px;padding:0 13px}.snip-cut-label{top:25px}.snip-cut-scene{height:270px}}
+@media(prefers-reduced-motion:reduce){.snip-cut-overlay{display:none}.brand-mark .scissor-arm{transition:none}.brand-symbol .blade-top,.brand-symbol .blade-bottom{animation:none!important}}

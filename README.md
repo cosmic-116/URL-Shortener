@@ -12,6 +12,7 @@ Snip is a high-performance URL shortener with real-time analytics, QR code gener
 - **Real-Time Click Telemetry**: Bot/crawler filtering, IP hashing, and per-link click tracking.
 - **Dynamic QR Studio**: Client-side vector QR studio and server-side PNG rendering with LRU caching.
 - **Ad Transit Demo**: Interstitial gateway with signed tokens and countdown verification. Balances and per-click credits are simulated; no real payments or payouts are connected.
+- **Optional Design Demo**: Try the alternate look at `/design/demo/`, with light/dark mode, richer client-side QR styling, and sample screens. The classic site remains the default; demo forms do not change real accounts or links. See [preview instructions](design-preview/README.md).
 - **Hardened Middleware**: Werkzeug `ProxyFix`, SQLite-backed distributed sliding-window rate limiters, per-request CSP nonces, CSRF double-submit protection, and instant multi-device session revocation via `session_version`.
 
 ---

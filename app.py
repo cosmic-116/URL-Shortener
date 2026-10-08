@@ -262,6 +262,7 @@ def robots():
         "Disallow: /dashboard/\n"
         "Disallow: /api/\n"
         "Disallow: /account\n"
+        "Disallow: /design/demo/\n"
         "Allow: /\n"
     )
     return app.response_class(content, mimetype='text/plain')
@@ -286,6 +287,29 @@ def index():
         except Exception as exc:
             logger.warning("Could not read guest quota for homepage: %s", exc)
     return render_template('index.html', guest_quota=guest_quota)
+
+
+# Optional design demo: a static, isolated experience with sample data only.
+# Use a two-segment path so existing short codes cannot be shadowed.
+_DESIGN_DEMO_FILES = frozenset({
+    'preview.css', 'preview.js', 'qr-data.js', 'favicon.svg',
+    'theme.js', 'enhancements.css', 'qr-studio.js', 'snip-cut.js', 'snip-cut.css'
+})
+
+@app.route('/design/demo/')
+def design_demo():
+    response = send_from_directory(os.path.join(app.root_path, 'design-preview'), 'index.html')
+    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
+
+@app.route('/design/demo/<filename>')
+def design_demo_asset(filename):
+    # Never expose the preview server, backups, or arbitrary project files.
+    if filename not in _DESIGN_DEMO_FILES:
+        abort(404)
+    return send_from_directory(os.path.join(app.root_path, 'design-preview'), filename)
 
 
 # ── Register Blueprints ─────────────────────────────────────

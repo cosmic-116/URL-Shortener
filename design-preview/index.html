@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ee">
+  <meta name="description" content="A standalone, interactive design preview for Snip.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Snip — Design preview</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="preview.css">
+  <link rel="stylesheet" href="enhancements.css">
+  <link rel="stylesheet" href="snip-cut.css">
+  <script src="theme.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#page">Skip to content</a>
+  <div class="demo-bar" role="region" aria-label="Alternate design demo">
+    <div><span class="demo-indicator"></span><strong>Alternate look</strong><span class="demo-bar-note">Demo · sample data, no real account changes</span></div>
+    <div class="demo-bar-actions"><button id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode">Dark</button><a id="back-classic" href="/">Back to classic <span aria-hidden="true">↗</span></a></div>
+  </div>
+  <div id="app"></div>
+  <div id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <dialog id="modal"></dialog>
+  <aside class="preview-dock" aria-label="Design preview controls">
+    <button id="preview-toggle" aria-expanded="false" aria-controls="preview-menu"><span class="preview-led"></span> Design preview <span class="dock-key">↗</span></button>
+    <div id="preview-menu" hidden>
+      <div class="preview-menu-head"><strong>Explore the whole system</strong><span>Sample data · local only</span></div>
+      <nav id="screen-list" aria-label="Preview screens"></nav>
+      <button id="reset-demo" class="preview-reset">Reset sample data</button>
+    </div>
+  </aside>
+  <script src="qr-data.js"></script>
+  <script src="snip-cut.js"></script>
+  <script src="qr-studio.js"></script>
+  <script src="preview.js"></script>
+</body>
+</html>
